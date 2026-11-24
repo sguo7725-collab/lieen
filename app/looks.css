@@ -1,0 +1,546 @@
+/* 1.9 interface styles. html[data-style] is glass (default) | paper | night; "lock" on the Android lock view.
+   Loaded after styles.css and night.css (night.css makes 夜光 dark even when the phone is in light mode). */
+@font-face{font-family:Geist;src:url(vendor/fonts/Geist-Variable.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{--font-system:Geist,-apple-system,BlinkMacSystemFont,"PingFang SC","HarmonyOS Sans SC","MiSans","Noto Sans CJK SC","Microsoft YaHei",sans-serif;--on-accent:#fff}
+.num,.progress-ring span,.focus-time,.timer-pill,.review-stats b,#lock-time{font-feature-settings:"tnum"}
+
+/* Hero parts used by 纸墨 and 夜光; hidden in 玻璃 */
+.today-hero,.today-meter{display:none}
+.hero-count small{font-weight:300}
+
+/* Text and fills that sit on the accent colour */
+.chip.active,.filter-tabs button.active,.tool.open,.nav-add,.add-input-line .add-submit,#edit-form .dialog-heading .primary-button,.primary-button,.timer-pill.is-on{color:var(--on-accent)!important}
+.add-input-line .add-submit svg,.nav-add svg{color:var(--on-accent)!important}
+
+/* ================= 玻璃 Glass ================= */
+html[data-style=glass]{--page:#ffffff00;--glass:#ffffff94;--glass-strong:#ffffffd6;--glass-line:#ffffffa8;--glass-shadow:0 10px 30px -14px #0a2a3a33;--chip-bg:#ffffff9c;--hair:#ffffff9e;--group-bg-2:#ffffff80}
+html[data-style=glass] body{background:#eef1f3}
+html[data-style=glass] body:before{content:"";position:fixed;inset:0;z-index:-2;background:var(--wall,none) 50% 70%/cover no-repeat;transform:translateZ(0)}
+html[data-style=glass] body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,#ffffffa6 0%,#ffffff52 38%,#ffffff7a 100%)}
+html[data-style=glass].glass-hole,html[data-style=glass].glass-hole body{background:transparent}
+html[data-style=glass].glass-hole body:before{display:none}
+html[data-style=glass].glass-hole body:after{background:linear-gradient(180deg,#f4f6f7e6,#f4f6f7cc 40%,#f4f6f7e0)}
+html[data-style=glass] .workspace,html[data-style=glass] .workspace-body,html[data-style=glass] .editor,html[data-style=glass] .settings-panel,html[data-style=glass] .review-panel,html[data-style=glass] .settings-top,html[data-style=glass] .settings-scroll{background:transparent!important}
+html[data-style=glass] .app-header{background:#ffffff38!important;-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5)}
+html[data-style=glass] #task-list,html[data-style=glass] #later-list,html[data-style=glass] #completed-list,html[data-style=glass] .search-results{background:var(--glass);border-radius:26px;box-shadow:inset 0 1px 0 #ffffffe0,inset 0 0 0 1px var(--glass-line),var(--glass-shadow);padding:2px 16px;margin:0 -6px}
+html[data-style=glass] #task-list:empty,html[data-style=glass] #later-list:empty,html[data-style=glass] #completed-list:empty{display:none}
+html[data-style=glass] #task-list:has(.first-run),html[data-style=glass] #task-list:has(.empty-state){background:transparent;box-shadow:none}
+html[data-style=glass] .task-row{border-bottom-color:#ffffffb0}
+html[data-style=glass] .task-row:last-child{border-bottom:0}
+html[data-style=glass] .task-row>button:not(.timer-pill){background:transparent}
+html[data-style=glass] .task-row[data-swipe]>button:not(.timer-pill){background:#f7f9fa}
+html[data-style=glass] .task-row .check-circle{background:#ffffff66}
+html[data-style=glass] .filter-tabs button,html[data-style=glass] .chip{box-shadow:inset 0 1px 0 #ffffffd0,inset 0 0 0 1px #ffffff90}
+html[data-style=glass] .filter-tabs button.active,html[data-style=glass] .chip.active{box-shadow:none}
+html[data-style=glass] .progress-ring{border-radius:50%;background:var(--glass);box-shadow:inset 0 1px 0 #ffffffe0,inset 0 0 0 1px var(--glass-line),var(--glass-shadow)}
+html[data-style=glass] .completed-section summary{padding-left:4px}
+html[data-style=glass] .add-form,html[data-style=glass] dialog.sheet{background:var(--glass-strong)!important;-webkit-backdrop-filter:blur(30px) saturate(1.6);backdrop-filter:blur(30px) saturate(1.6);box-shadow:inset 0 1px 0 #fff,0 -12px 40px -10px #0a2a3a40!important}
+html[data-style=glass] .settings-page fieldset,html[data-style=glass] .settings-list,html[data-style=glass] .review-card,html[data-style=glass] .review-stats>div:nth-child(n+2),html[data-style=glass] .more-appearance,html[data-style=glass] .ag{background:var(--glass)!important;border-color:var(--glass-line)!important;box-shadow:inset 0 1px 0 #ffffffd0,var(--glass-shadow)}
+html[data-style=glass] .focus-bar{background:#141414e0;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+@media(prefers-color-scheme:dark){
+  html[data-style=glass]{--glass:#1e1f2299;--glass-strong:#1c1d20e6;--glass-line:#ffffff1f;--chip-bg:#ffffff1a;--hair:#ffffff1a;--group-bg-2:#ffffff12;--glass-shadow:0 10px 30px -14px #000a}
+  html[data-style=glass] body{background:#111214}
+  html[data-style=glass] body:before{filter:brightness(.62)}
+  html[data-style=glass] body:after{background:linear-gradient(180deg,#0d0e10b8,#0d0e1066 40%,#0d0e10a8)}
+  html[data-style=glass].glass-hole body:after{background:linear-gradient(180deg,#0d0e10e6,#0d0e10cc 40%,#0d0e10e0)}
+  html[data-style=glass] .app-header{background:#10111266!important}
+  html[data-style=glass] .task-row{border-bottom-color:#ffffff14}
+  html[data-style=glass] .task-row[data-swipe]>button:not(.timer-pill){background:#1d1e21}
+  html[data-style=glass] .task-row .check-circle{background:#ffffff0d}
+  html[data-style=glass] #task-list,html[data-style=glass] #later-list,html[data-style=glass] #completed-list,html[data-style=glass] .search-results,html[data-style=glass] .progress-ring,html[data-style=glass] .filter-tabs button,html[data-style=glass] .chip{box-shadow:inset 0 1px 0 #ffffff14,inset 0 0 0 1px #ffffff12}
+  html[data-style=glass] .settings-page fieldset,html[data-style=glass] .settings-list,html[data-style=glass] .review-card,html[data-style=glass] .ag{box-shadow:inset 0 1px 0 #ffffff12}
+}
+
+/* ================= 纸墨 Paper ================= */
+html[data-style=paper]{--page:#f6f5f1;--ink:#16150f;--muted:#6b6a63;--line:#e3e1d9;--surface:#efede6;--chip-bg:#ebe9e1;--chip-ink:#16150f;--hair:#e3e1d9;--group-bg-2:#efede6;--card:#fbfaf7}
+html[data-style=paper] body,html[data-style=paper] .settings-top,html[data-style=paper] .settings-scroll{background:#f6f5f1!important}
+html[data-style=paper] .task-row>button:not(.timer-pill){background:#f6f5f1}
+html[data-style=paper] .app-header{background:#f6f5f1e8!important}
+html[data-style=paper] .today-top h1,html[data-style=paper] #progress-copy,html[data-style=paper] .progress-ring{display:none}
+html[data-style=paper] .today-hero{display:flex;align-items:flex-end;gap:14px}
+html[data-style=paper] .hero-day{font:250 104px/.82 Geist,sans-serif;letter-spacing:-6px;color:var(--ink)}
+html[data-style=paper] .hero-week{padding-bottom:5px;font-size:15px;line-height:1.45;color:var(--muted)}
+html[data-style=paper] .hero-week strong{display:block;color:var(--ink);font-size:18px;font-weight:650}
+html[data-style=paper] .hero-count{display:none}
+html[data-style=paper] .today-meter{display:flex;align-items:center;gap:12px;margin:22px 0 0;font:500 12px Geist,sans-serif;letter-spacing:.08em;color:var(--muted)}
+html[data-style=paper] .today-meter i{flex:1;height:2px;background:var(--line);position:relative;overflow:hidden}
+html[data-style=paper] .today-meter i b{position:absolute;left:0;top:0;bottom:0;background:var(--ink);transition:width .4s ease}
+html[data-style=paper] .today-top{flex-direction:column;align-items:stretch!important}
+html[data-style=paper] .filter-tabs{gap:22px!important;border-bottom:1px solid var(--line)!important;-webkit-mask-image:none!important;mask-image:none!important}
+html[data-style=paper] .filter-tabs button{background:none!important;border:0!important;border-radius:0!important;padding:0 0 10px!important;min-height:0!important;color:#8c8a82!important;border-bottom:2px solid transparent!important;margin-bottom:-1px}
+html[data-style=paper] .filter-tabs button.active{color:var(--ink)!important;border-bottom-color:var(--ink)!important}
+html[data-style=paper] .filter-tabs button.active .dot{box-shadow:none}
+html[data-style=paper] .task-row .check-circle,html[data-style=paper] .subtask .check-circle{border-radius:6px}
+html[data-style=paper] .task-title{font-size:calc(17px * var(--ts))}
+html[data-style=paper] .timer-pill{background:none;border:1px solid var(--ink);color:var(--ink)}
+html[data-style=paper] .timer-pill.is-on{background:var(--ink);color:#f6f5f1!important}
+html[data-style=paper] .nav-add{border-radius:50%!important}
+html[data-style=paper] .add-form,html[data-style=paper] dialog.sheet{background:#fbfaf7!important}
+html[data-style=paper] .settings-page fieldset,html[data-style=paper] .settings-list,html[data-style=paper] .review-card,html[data-style=paper] .ag,html[data-style=paper] .more-appearance{background:#fbfaf7!important;box-shadow:none!important;border:1px solid var(--line)!important;border-radius:6px!important}
+html[data-style=paper] .settings-top h1,html[data-style=paper] .review-top h1{font-family:Geist,var(--font-system);letter-spacing:-.5px}
+html[data-style=paper] .review-stats>div:first-child{background:var(--ink)!important}
+@media(prefers-color-scheme:dark){
+  html[data-style=paper]{--page:#141311;--ink:#ecebe6;--muted:#9c9a92;--line:#2a2925;--surface:#1c1b18;--chip-bg:#23221e;--chip-ink:#ecebe6;--hair:#2a2925;--group-bg-2:#1c1b18;--card:#1c1b18}
+  html[data-style=paper] body,html[data-style=paper] .settings-top,html[data-style=paper] .settings-scroll,html[data-style=paper] .task-row>button:not(.timer-pill){background:#141311!important}
+  html[data-style=paper] .app-header{background:#141311e8!important}
+  html[data-style=paper] .add-form,html[data-style=paper] dialog.sheet,html[data-style=paper] .settings-page fieldset,html[data-style=paper] .settings-list,html[data-style=paper] .review-card,html[data-style=paper] .ag,html[data-style=paper] .more-appearance{background:#1c1b18!important}
+  html[data-style=paper] .timer-pill.is-on{color:#141311!important}
+}
+
+/* ================= 夜光 Night (always dark) ================= */
+html[data-style=night]{--page:#0a0a0b;--ink:#f3f3f0;--muted:#8a8a86;--line:#1f1f21;--surface:#141416;--chip-bg:#18181a;--chip-ink:#c9c9c5;--hair:#1f1f21;--group-bg-2:#141416;--card:#1c1c1f}
+html[data-style=night] body,html[data-style=night] .settings-top,html[data-style=night] .settings-scroll{background:#0a0a0b!important}
+html[data-style=night] .app-header{background:#0a0a0be0!important}
+html[data-style=night] .today-top h1,html[data-style=night] .progress-ring{display:none}
+html[data-style=night] .today-top{align-items:flex-end!important}
+html[data-style=night] .today-hero{display:flex;flex:1;align-items:flex-end;justify-content:space-between;gap:12px;order:-1}
+html[data-style=night] .hero-count{font:800 116px/.8 Geist,sans-serif;letter-spacing:-7px;color:var(--accent)}
+html[data-style=night] .hero-count small{font-size:48px;letter-spacing:-2px;color:#4a4a47}
+html[data-style=night] .hero-day{display:none}
+html[data-style=night] .hero-week{text-align:right;font-size:14px;line-height:1.5;color:var(--muted);padding-bottom:4px}
+html[data-style=night] .hero-week strong{display:block;color:var(--ink);font-size:20px;font-weight:700}
+html[data-style=night] #progress-copy{display:none}
+html[data-style=night] .today-top>div:first-child{display:contents}
+html[data-style=night] .today-meter{display:flex;gap:4px;margin:20px 0 4px}
+html[data-style=night] .today-meter i{flex:1;height:6px;border-radius:3px;background:#222220}
+html[data-style=night] .today-meter i.on{background:var(--accent)}
+html[data-style=night] .editor>.today-meter{margin-top:-6px}
+html[data-style=night] .filter-tabs button{border-radius:10px!important}
+html[data-style=night] .filter-tabs button.active{background:#f3f3f0!important;color:#0a0a0b!important}
+html[data-style=night] #task-list{display:grid;gap:8px}
+html[data-style=night] .task-row{border:0!important;border-radius:18px;background:#141416;padding:0 6px 0 2px;min-height:62px}
+html[data-style=night] .task-row>button:not(.timer-pill){background:#141416}
+html[data-style=night] .later-section .task-row{background:transparent;border:1px dashed #2a2a28!important}
+html[data-style=night] .later-section .task-row>button:not(.timer-pill){background:transparent}
+html[data-style=night] #later-list{display:grid;gap:8px}
+html[data-style=night] .task-row .check-circle{border-radius:8px;width:24px;height:24px}
+html[data-style=night] .timer-pill{border-radius:9px;background:var(--accent);color:var(--on-accent)!important;font-weight:650}
+html[data-style=night] .timer-pill svg{color:var(--on-accent)}
+html[data-style=night] .meta-repeat{color:var(--accent)}
+html[data-style=night] .nav-add{border-radius:22px!important;width:64px!important;height:64px!important;box-shadow:0 12px 34px -8px color-mix(in srgb,var(--accent) 55%,transparent)!important}
+html[data-style=night] .add-form,html[data-style=night] dialog.sheet{background:#141416!important}
+html[data-style=night] .add-input-line{background:transparent!important}
+html[data-style=night] .settings-page fieldset,html[data-style=night] .settings-list,html[data-style=night] .review-card,html[data-style=night] .ag,html[data-style=night] .more-appearance{background:#141416!important;border-color:#1f1f21!important;box-shadow:none!important}
+html[data-style=night] .review-stats>div:first-child{background:var(--accent-fill)!important;color:var(--on-accent)}
+html[data-style=night] .review-stats>div:first-child span{color:var(--on-accent);opacity:.7}
+html[data-style=night] .focus-bar{background:#18181b;box-shadow:inset 0 0 0 1px #ffffff14,0 14px 34px -14px #000}
+html[data-style=night] .focus-ring{background:conic-gradient(var(--accent) calc(var(--p) * 360deg),#ffffff1f 0)}
+html[data-style=night] .focus-ring span{background:#18181b}
+html[data-style=night] .check-task:hover .check-circle{background:color-mix(in srgb,var(--accent) 15%,transparent)}
+html[data-style=night] .edit-field .chip{background:#232325!important}
+html[data-style=night] .edit-field .chip.active{background:var(--accent)!important}
+
+/* ================= Style picker ================= */
+.style-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.style-chip{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:8px;border-radius:18px;border:1.5px solid var(--hair);background:var(--card,#fff);text-align:left;color:var(--ink)}
+.style-chip.active{border-color:var(--accent-fill);box-shadow:0 0 0 1px var(--accent-fill)}
+.style-chip strong{font-size:14px;margin:6px 4px 0}
+.style-chip small{font-size:11px;color:var(--muted);margin:0 4px 4px;line-height:1.35}
+.style-demo{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;width:100%;aspect-ratio:1/1.15;border-radius:12px;overflow:hidden;padding:10px}
+.style-demo i{display:block;height:9px;border-radius:5px}
+.style-demo.glass{background:linear-gradient(160deg,#9fd3e3,#e6d6c2 55%,#8fb7a6)}
+.style-demo.glass i{background:#ffffffc8;box-shadow:inset 0 0 0 1px #ffffffe0}
+.style-demo.glass i:nth-child(1){width:60%}
+.style-demo.paper{background:#f6f5f1;box-shadow:inset 0 0 0 1px #e3e1d9;justify-content:space-between}
+.style-demo.paper b{font:250 40px/.9 Geist,sans-serif;letter-spacing:-2px;color:#16150f}
+.style-demo.paper i{height:2px;border-radius:0;background:#16150f}
+.style-demo.paper i+i{background:#d8d6cd}
+.style-demo.night{background:#0a0a0b;justify-content:space-between}
+.style-demo.night b{font:800 30px/.9 Geist,sans-serif;letter-spacing:-1.5px;color:#d8ff3d}
+.style-demo.night i{height:12px;border-radius:5px;background:#1d1d20}
+.swatch.lime{--color:#d8ff3d;color:#0a0a0b}
+.swatch[hidden]{display:none}
+.look-group{font-size:20px;font-weight:700;margin:26px 4px 12px;letter-spacing:-.01em}
+.look-group:first-of-type{margin-top:8px}
+
+/* ================= Settings home: preview + grouped list ================= */
+.settings-home-hero{position:relative;display:block;width:100%;height:210px;border-radius:26px;overflow:hidden;margin:4px 0 16px;box-shadow:0 18px 40px -22px #0008;text-align:left}
+.settings-home-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.settings-home-hero .hero-tag{position:absolute;left:14px;top:14px;font-size:12px;font-weight:600;color:#fff;padding:6px 11px;border-radius:999px;background:#ffffff30;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.settings-home-hero .hero-card{position:absolute;left:14px;right:14px;bottom:14px;border-radius:20px;padding:12px 15px;color:var(--card-ink,#fff);background:var(--card-bg,#1c1c1ecc);-webkit-backdrop-filter:blur(var(--card-blur,18px)) saturate(1.3);backdrop-filter:blur(var(--card-blur,18px)) saturate(1.3);box-shadow:inset 0 0 0 1px #ffffff2a;font-size:14px}
+.settings-home-hero .hero-card p{display:flex;justify-content:space-between;font-size:12px;opacity:.8;margin:0 0 4px}
+.settings-home-hero .hero-card #home-card-rows>span{display:flex;align-items:center;gap:10px;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settings-home-hero .hero-card #home-card-rows>span:before{content:"";flex:none;width:13px;height:13px;border-radius:50%;border:1.5px solid currentColor;opacity:.85}
+html.wallpaper-hole .settings-home-hero img{display:none}
+.settings-list{border-radius:22px;background:var(--card,#fff);overflow:hidden;margin:0 0 14px;box-shadow:0 1px 2px #0000000a}
+.settings-list>button{display:flex;align-items:center;gap:13px;width:100%;min-height:56px;padding:0 16px;border-bottom:1px solid var(--hair);font-size:16px;color:var(--ink);text-align:left;background:none}
+.settings-list>button:last-child{border-bottom:0}
+.settings-list .row-ico{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;background:var(--c,#1d1d1f)}
+.settings-list .row-ico svg{width:17px;height:17px}
+.settings-list .row-label{flex:1;min-width:0}
+.settings-list .row-value{color:var(--muted);font-size:15px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.settings-list .row-value .dot{width:8px;height:8px}
+.settings-list .row-chev{width:16px;height:16px;color:#c7c7cc}
+html[data-style=night] .settings-list .row-chev{color:#3a3a3c}
+@media(prefers-color-scheme:dark){.settings-list{background:#1c1c1e}.settings-list .row-chev{color:#48484a}}
+html[data-style=lock] .settings-home-hero{display:none}
+
+/* Add sheet rows: label on the left, options on the right */
+.add-row{display:flex;align-items:center;gap:8px;min-height:44px}
+.add-label{flex:none;width:52px;display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--muted)}
+.add-label svg{width:14px;height:14px}
+.add-row>.chip-row{flex:1;min-width:0;display:flex!important;margin:0!important;padding:2px 0!important;border:0!important;animation:none!important}
+.add-options{margin-top:6px!important}
+/* Settings hero rows stack */
+#home-card-rows{display:block}
+#home-card-rows>span{display:flex}
+html[data-style=paper] .today-meter{margin-bottom:20px}
+html[data-style=night] .task-row .check-circle{border-color:color-mix(in srgb,var(--g,#555) 80%,#555)}
+#home-card-rows:before{display:none!important}
+/* English: CSS-drawn words and wider row labels */
+html[lang=en] .settings-top>.nav-button[data-view=tasks]:after{content:"Done"}
+html[lang=en] .task-row[data-swipe=done]::after{content:"✓ Done"}
+html[lang=en] .task-row[data-swipe=delete]::after{content:"Delete"}
+html[lang=en] .add-label{width:78px}
+/* Android settings preview shows the real phone wallpaper through a hole: no veil there, solid page around it */
+html.wallpaper-hole[data-style=glass] body:after,html.wallpaper-hole[data-style=glass] body:before{display:none}
+html.wallpaper-hole[data-style=glass] .settings-top,html.wallpaper-hole[data-style=glass] #settings-scroll,html.wallpaper-hole[data-style=glass] .app-header{background:#f2f3f5!important}
+@media(prefers-color-scheme:dark){html.wallpaper-hole[data-style=glass] .settings-top,html.wallpaper-hole[data-style=glass] #settings-scroll,html.wallpaper-hole[data-style=glass] .app-header{background:#111214!important}}
+/* 墨黑 on dark: the main controls turn white with black text (other accent fills stay mid-grey) */
+@media(prefers-color-scheme:dark){html[data-palette=ink]:not([data-style=lock]) :is(.nav-add,.add-input-line .add-submit,#edit-form .dialog-heading .primary-button,.chip.active,.filter-tabs button.active,.tool.open,.timer-pill.is-on){background:#f2f2f4!important;color:#1d1d1f!important}
+  html[data-palette=ink] :is(.nav-add,.add-input-line .add-submit,.timer-pill.is-on) svg{color:#1d1d1f!important}}
+html[data-style=night][data-palette=ink] :is(.nav-add,.add-input-line .add-submit,#edit-form .dialog-heading .primary-button,.chip.active,.tool.open,.timer-pill.is-on,.timer-pill){background:#f2f2f4!important;color:#1d1d1f!important}
+html[data-style=night][data-palette=ink] :is(.nav-add,.add-input-line .add-submit,.timer-pill) svg{color:#1d1d1f!important}
+html[data-style=paper] .filter-tabs button.active{background:none!important;color:var(--ink)!important}
+@media(prefers-color-scheme:dark){html[data-style=paper][data-palette=ink]:not([data-style=lock]) .filter-tabs button.active{background:none!important;color:var(--ink)!important}}
+
+/* 1.11 cute fonts (fonts-cute.css is loaded on demand) */
+:root{--font-kuaile:"ZCOOL KuaiLe",var(--font-system);--font-huangyou:"ZCOOL QingKe HuangYou",var(--font-system);--font-shouxie:"Long Cang",var(--font-system)}
+.font-presets{grid-template-columns:repeat(4,minmax(0,1fr))!important;row-gap:14px!important}
+
+/* ================= 1.11 lock screen (Android lock view): one frosted card per group ================= */
+body.lock-mode .lock-clock{padding-top:max(56px,8svh)}
+body.lock-mode #lock-date{font-size:18px;font-weight:600;letter-spacing:.02em;opacity:.95}
+body.lock-mode #lock-time{font:650 98px/1.02 Geist,var(--font-system);letter-spacing:-3px;color:#ffffffeb;text-shadow:0 2px 30px #0000002e}
+body.lock-mode .activity-position{top:calc(max(56px,8svh) + 158px);bottom:122px;left:16px;right:16px;display:flex;flex-direction:column}
+body.lock-mode.has-focus .activity-position{top:calc(max(56px,8svh) + 244px)}
+body.lock-mode.has-focus .focus-bar{top:calc(max(56px,8svh) + 150px)}
+body.lock-mode .activity{flex:1;min-height:0;height:auto!important;padding:0!important;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;border:0!important;border-radius:0!important;display:flex;flex-direction:column;overflow:visible}
+body.lock-mode .activity:before,body.lock-mode .activity:after{display:none!important}
+body.lock-mode .activity-heading,body.lock-mode .activity-footer{display:none!important}
+body.lock-mode #activity-list{flex:1;height:auto!important;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:0 0 18px;scrollbar-width:none;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
+body.lock-mode #activity-list::-webkit-scrollbar{display:none}
+.lock-group{flex:none;border-radius:30px;padding:6px 18px 12px;background:var(--card-bg);color:var(--card-ink);-webkit-backdrop-filter:blur(var(--card-blur,20px)) saturate(1.4);backdrop-filter:blur(var(--card-blur,20px)) saturate(1.4);box-shadow:inset 0 0 0 1px #ffffff38,inset 0 1px 0 #ffffff30,0 14px 34px -20px #0007}
+.activity[data-surface=glass] .lock-group{background:linear-gradient(135deg,#ffffff40 0%,#ffffff10 40%,#ffffff00 62%,#ffffff18 100%),var(--card-bg);box-shadow:inset 0 0 0 1px #ffffff5c,inset 0 1px 0 #ffffff80,0 14px 34px -20px #0007}
+.activity[data-surface=flat] .lock-group{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}
+.lock-group-head{display:flex;align-items:center;gap:9px;height:52px}
+.lock-group-head b{flex:1;min-width:0;font-size:calc(22px * var(--ts));font-weight:750;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lock-group-emoji{font-size:24px;line-height:1}
+.lock-group-head .dot{width:11px;height:11px}
+.lock-group-count{flex:none;font:600 14px Geist,var(--font-system);padding:3px 12px;border-radius:999px;border:1.6px solid color-mix(in srgb,var(--card-ink) 50%,transparent);font-feature-settings:"tnum"}
+body.lock-mode .lock-group .lock-task{height:48px;font-size:calc(18px * var(--ts));gap:13px}
+body.lock-mode .lock-group .lock-task .check-circle{width:24px;height:24px;border-width:2px;border-color:color-mix(in srgb,var(--card-ink) 85%,transparent)}
+body.lock-mode .lock-group .lock-task.is-done .check-circle{background:#34c759;border-color:#34c759;color:#fff}
+body.lock-mode .lock-group .lock-task.is-done .check-circle svg{width:14px;height:14px;stroke-width:3}
+body.lock-mode .lock-group .lock-task.is-done .lock-task-label{opacity:.6}
+.lock-subs{padding-left:38px}
+.lock-sub{display:flex;align-items:center;gap:12px;width:100%;height:44px;padding:0;text-align:left;color:inherit;font-size:calc(17px * var(--ts))}
+.lock-sub .check-circle{width:22px;height:22px;flex:none;border:1.8px solid color-mix(in srgb,var(--card-ink) 80%,transparent);border-radius:50%;display:grid;place-items:center}
+.lock-sub.is-done .check-circle{background:#34c759;border-color:#34c759;color:#fff}
+.lock-sub.is-done .lock-task-label{opacity:.6;text-decoration:line-through}
+.lock-sub .check-circle svg{width:12px;height:12px;stroke-width:3}
+body.lock-mode .lock-exit{bottom:12px;gap:0}
+body.lock-mode .lock-exit span:last-child{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-height:740px){body.lock-mode #lock-time{font-size:78px}body.lock-mode .activity-position{top:calc(40px + 132px);bottom:112px}body.lock-mode.has-focus .activity-position{top:calc(40px + 214px)}}
+
+/* 1.12 lock screen: the old summary is back — heading (今天的待办 · done/total) above the cards, the
+   remaining/done line with 全部清单 below them, and the swipe hint at the bottom. */
+body.lock-mode .activity-heading{display:flex!important;flex:none;height:auto;margin:0 4px 10px;padding:0;color:#fff;font-size:15px;font-weight:600;text-shadow:0 1px 2px #0006,0 0 16px #0005}
+body.lock-mode .activity-heading svg{width:17px;height:17px}
+body.lock-mode #activity-count{font:600 14px Geist,var(--font-system);opacity:.9}
+body.lock-mode .activity-footer{display:flex!important;flex:none;height:40px;margin:2px 4px 0;padding:0;border:0!important;color:#fff;font-size:13px;opacity:.92;text-shadow:0 1px 2px #0006,0 0 16px #0005;background:none!important}
+body.lock-mode .lock-exit span:last-child{position:static;width:auto;height:auto;overflow:visible;clip:auto;margin-top:10px}
+body.lock-mode .lock-exit{bottom:22px;gap:0}
+/* group line icons (settings picker + lock card titles) */
+.group-row{flex-wrap:wrap}
+.group-icon-btn{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:var(--g);background:color-mix(in srgb,var(--g) 13%,transparent)}
+.group-icon-btn svg{width:19px;height:19px;stroke-width:1.8}
+.group-icon-btn .dot{width:10px;height:10px;background:var(--g)}
+.group-icons{flex-basis:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;padding:10px 0 4px}
+.group-icon-choice{height:40px;border-radius:12px;display:grid;place-items:center;color:var(--ink);background:var(--chip-bg)}
+.group-icon-choice svg{width:19px;height:19px;stroke-width:1.7}
+.group-icon-choice.active{background:var(--accent-fill);color:var(--on-accent)}
+.lock-group-icon{display:grid;place-items:center;width:22px;height:22px;flex:none}
+.lock-group-icon svg{width:21px;height:21px;stroke-width:1.7}
+body.lock-mode #activity-count{color:#fff!important;opacity:1}
+body.lock-mode .activity-heading{margin:0 6px 10px}
+body.lock-mode .activity-footer{margin:4px 6px 0}
+.group-row{grid-template-columns:36px minmax(0,1fr) auto 36px!important}
+.group-row>.group-icons{grid-column:1/-1}
+@media(max-width:420px){.group-row{grid-template-columns:36px minmax(0,1fr) 36px!important}.group-row>.group-colors{grid-column:2/4}}
+
+/* 1.14 lock screen: quieter type (smaller, lighter, like the old single card), the remaining/done line sits right
+   under the last card instead of at the bottom, and no ✓ / + buttons — just the swipe hint. */
+body.lock-mode .lock-clock{padding-top:max(52px,7svh)}
+body.lock-mode #lock-date{font-size:15px;font-weight:550;letter-spacing:.03em;opacity:.92}
+body.lock-mode #lock-time{font-size:84px;font-weight:600;letter-spacing:-2.5px;line-height:1}
+body.lock-mode .activity-position{top:calc(max(52px,7svh) + 132px);bottom:64px}
+body.lock-mode.has-focus .activity-position{top:calc(max(52px,7svh) + 214px)}
+body.lock-mode.has-focus .focus-bar{top:calc(max(52px,7svh) + 126px)}
+body.lock-mode #activity-list{flex:0 1 auto;gap:10px;padding:0 0 4px;-webkit-mask-image:none;mask-image:none}
+body.lock-mode .activity-heading{font-size:13px;font-weight:550;margin:0 6px 9px}
+body.lock-mode .activity-heading svg{width:15px;height:15px}
+body.lock-mode #activity-count{font-size:13px;font-weight:550}
+body.lock-mode .activity-footer{height:32px;margin:6px 6px 0;font-size:12px}
+.lock-group{border-radius:22px;padding:2px 15px 7px}
+.lock-group-head{gap:7px;height:36px}
+.lock-group-head b{font-size:calc(15px * var(--ts));font-weight:650;letter-spacing:.02em}
+.lock-group-icon{width:17px;height:17px}
+.lock-group-icon svg{width:16px;height:16px;stroke-width:1.8}
+.lock-group-count{font-size:11.5px;font-weight:550;padding:1px 8px;border-width:1px;opacity:.85}
+body.lock-mode .lock-group .lock-task{height:44px;font-size:calc(15px * var(--ts));font-weight:450;gap:11px}
+body.lock-mode .lock-group .lock-task .check-circle{width:19px;height:19px;border-width:1.5px}
+body.lock-mode .lock-group .lock-task.is-done .check-circle svg{width:11px;height:11px}
+.lock-subs{padding-left:30px}
+.lock-sub{height:40px;gap:10px;font-size:calc(14px * var(--ts))}
+.lock-sub .check-circle{width:17px;height:17px;border-width:1.4px}
+.lock-sub .check-circle svg{width:10px;height:10px}
+body.lock-mode .lock-timer{height:26px;padding:0 10px 0 8px;border-radius:13px;font-size:12px}
+body.lock-mode .lock-timer svg{width:10px;height:10px}
+body.lock-mode .lock-repeat svg{width:14px;height:14px}
+body.lock-mode .lock-exit{bottom:16px}
+body.lock-mode .lock-exit span:last-child{margin-top:8px;font-size:12px}
+@media(max-height:740px){body.lock-mode #lock-time{font-size:70px}body.lock-mode .activity-position{top:calc(40px + 112px);bottom:58px}body.lock-mode.has-focus .activity-position{top:calc(40px + 194px)}}
+/* 1.14 settings previews on Android = the lock screen in miniature (heading, one card per group, remaining line) */
+.mini-group{border-radius:13px;padding:1px 10px 4px;margin-bottom:6px;background:var(--card-bg);color:var(--card-ink);-webkit-backdrop-filter:blur(var(--card-blur,18px)) saturate(1.3);backdrop-filter:blur(var(--card-blur,18px)) saturate(1.3);box-shadow:inset 0 0 0 1px #ffffff38,inset 0 1px 0 #ffffff30}
+.mini-group-head{display:flex;align-items:center;gap:5px;height:22px;font-size:10.5px}
+.mini-group-head svg{width:11px;height:11px;stroke-width:1.9;flex:none}
+.mini-group-head b{flex:1;min-width:0;font-weight:650;letter-spacing:.02em}
+.mini-group-head span{font:550 9px Geist,var(--font-system);padding:0 6px;border-radius:9px;border:1px solid color-mix(in srgb,var(--card-ink) 45%,transparent)}
+.mini-group .mini-row{height:22px!important;font-size:calc(11px * var(--ts))!important;gap:7px}
+.mini-group .mini-row .check-circle{width:12px;height:12px;border-color:color-mix(in srgb,var(--card-ink) 85%,transparent)}
+.mini-group .mini-row.is-done{opacity:1}
+.mini-group .mini-row.is-done .check-circle{background:#34c759;border-color:#34c759;color:#fff}
+.mini-group .mini-row.is-done .mini-row-label{opacity:.6}
+.mini-group .mini-timer{font-size:9px;padding:0 6px 0 4px}
+.mini-group .lock-repeat svg{width:10px;height:10px}
+.mini-card.grouped{height:auto;max-height:190px;padding:0;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;border-radius:0;display:flex;flex-direction:column;overflow:hidden}
+.mini-card.grouped .mini-heading{color:#fff;margin:0 2px 4px;text-shadow:0 1px 2px #0006,0 0 14px #0005}
+.mini-card.grouped .mini-heading svg{color:#fff}
+.mini-card.grouped .mini-heading>span:last-child{color:#fff}
+.mini-card.grouped .mini-list{height:auto!important;flex:0 1 auto;min-height:0;overflow:hidden}
+.mini-card.grouped .mini-footer{border:0;height:18px;margin:0 2px;color:#fff;font-size:9px;text-shadow:0 1px 2px #0006,0 0 14px #0005}
+.settings-home-hero .hero-card.grouped{top:52px;bottom:auto;max-height:calc(100% - 62px);padding:0;background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none;border-radius:0;overflow:hidden;color:#fff}
+.settings-home-hero .hero-card.grouped p{margin:0 3px 6px;opacity:1;text-shadow:0 1px 2px #0006,0 0 14px #0005}
+.settings-home-hero .hero-card.grouped .mini-group{color:var(--card-ink)}
+.settings-home-hero .hero-card.grouped .mini-group-head{height:24px;font-size:11.5px}
+.settings-home-hero .hero-card.grouped .mini-group .mini-row{height:24px!important;font-size:12px!important}
+.hero-foot{font-size:10.5px;margin:0 3px;opacity:.95;text-shadow:0 1px 2px #0006,0 0 14px #0005}
+.settings-home-hero:has(.hero-card.grouped){height:258px}
+.settings-home-hero .hero-card.grouped{top:58px;max-height:calc(100% - 64px)}
+
+/* ================= 1.15 motion layer (with app/motion.js) ================= */
+html[data-motion=on] :is(button,a[href],[role=button],label.chip,label.switch,.swatch,summary){transition:scale .5s cubic-bezier(.34,1.56,.64,1),background-color .2s,color .2s,box-shadow .25s,border-color .2s}
+html[data-motion=on] .is-pressed{scale:var(--press,.95);transition:scale .12s cubic-bezier(.2,.8,.2,1),background-color .1s!important}
+html[data-motion=on] .task-row .is-pressed,html[data-motion=on] .task-body.is-pressed{scale:1}
+html[data-motion=on] dialog[open]{animation:sheet-in .46s cubic-bezier(.32,1.25,.6,1)}
+html[data-motion=on] dialog[open]::backdrop{animation:fade-in .3s ease}
+@media(max-width:760px){html[data-motion=on] dialog.sheet[open]{animation:sheet-up .5s cubic-bezier(.32,1.15,.6,1)}}
+html[data-motion=on] .toast:not([hidden]){animation:toast-in .5s cubic-bezier(.34,1.56,.64,1)}
+html[data-motion=on] .add-form .add-row,html[data-motion=on] body.adding .add-form .add-submit{animation:none}
+html[data-motion=on] body.adding .add-form .add-row{animation:row-in .42s cubic-bezier(.2,.8,.2,1) both}
+html[data-motion=on] body.adding .add-form .add-row:nth-of-type(2){animation-delay:30ms}
+html[data-motion=on] body.adding .add-form .add-row:nth-of-type(3){animation-delay:60ms}
+html[data-motion=on] body.adding .add-form .add-row:nth-of-type(4){animation-delay:90ms}
+html[data-motion=on] body.adding .add-form .add-row:nth-of-type(5){animation-delay:120ms}
+html[data-motion=on] .view-enter .settings-tiles>button,html[data-motion=on] .page-back .settings-tiles>button,html[data-motion=on] .view-enter .settings-home>.settings-list,html[data-motion=on] .page-back.settings-home>.settings-list,html[data-motion=on] .page-back .settings-tiles>button{animation:tile-in .52s cubic-bezier(.2,.9,.25,1.1) both;animation-delay:calc(var(--i,0) * 45ms + 60ms)}
+html[data-motion=on] .view-enter .settings-home-hero,html[data-motion=on] .page-back .settings-home-hero{animation:hero-in .6s cubic-bezier(.2,.8,.2,1) both}
+html[data-motion=on] .fab-add svg,html[data-motion=on] #fab-add svg{transition:rotate .45s cubic-bezier(.34,1.56,.64,1)}
+html[data-motion=on] body.adding #fab-add svg{rotate:45deg}
+.check-circle{transition:scale .4s cubic-bezier(.34,1.56,.64,1),background .18s,border-color .18s,transform .14s}
+@keyframes sheet-in{from{opacity:0;scale:.94;translate:0 12px}}
+@keyframes sheet-up{from{translate:0 100%}}
+@keyframes fade-in{from{opacity:0}}
+@keyframes toast-in{from{opacity:0;translate:0 16px;scale:.9}}
+@keyframes row-in{from{opacity:0;translate:0 10px}}
+@keyframes tile-in{from{opacity:0;translate:0 14px;scale:.97}}
+@keyframes hero-in{from{opacity:0;scale:.97}}
+@media(prefers-reduced-motion:reduce){html *{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ================= 1.15 settings home: preview + tiles + short list ================= */
+.settings-home{display:block;--tile-bg:#fff;--tile-line:#0000000d;--tile-ico:#f2f2f4;--tile-ink:#1d1d1f;--tile-sub:#6e6e73;--tile-r:24px}
+@media(prefers-color-scheme:dark){.settings-home{--tile-bg:#1c1c1e;--tile-line:#ffffff10;--tile-ico:#2c2c2e;--tile-ink:#f5f5f7;--tile-sub:#8e8e93}}
+html[data-style=glass] .settings-home{--tile-bg:var(--glass);--tile-line:var(--glass-line);--tile-ico:color-mix(in srgb,var(--tile-ink) 7%,transparent)}
+html[data-style=paper] .settings-home{--tile-bg:#fbfaf7;--tile-line:#e7e4dc;--tile-ico:#efece4;--tile-ink:#1d1c1a;--tile-sub:#716c62;--tile-r:10px}
+@media(prefers-color-scheme:dark){html[data-style=paper] .settings-home{--tile-bg:#1b1a17;--tile-line:#2a2824;--tile-ico:#26241f;--tile-ink:#f2efe8;--tile-sub:#8f897c}}
+html[data-style=night] .settings-home{--tile-bg:#141416;--tile-line:#222225;--tile-ico:#1e1e21;--tile-ink:#f5f5f7;--tile-sub:#8e8e93}
+
+/* Preview: a little lock screen — clock on top, the cards under it, a tag at the bottom. */
+.settings-home .settings-home-hero{height:312px;border-radius:calc(var(--tile-r) + 4px);margin:2px 0 12px;box-shadow:0 22px 44px -26px #000a,0 0 0 1px var(--tile-line)}
+.settings-home-hero:after{content:"";position:absolute;inset:auto 0 0;height:84px;background:linear-gradient(#0000,#0007);pointer-events:none}
+.settings-home-hero .hero-clock{position:absolute;left:0;right:0;top:20px;display:flex;flex-direction:column;align-items:center;color:#fff;text-shadow:0 1px 10px #0003;pointer-events:none}
+.hero-clock small{font-size:11px;font-weight:550;letter-spacing:.03em;opacity:.92}
+.hero-clock b{font:600 46px/1.05 Geist,var(--font-system);letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
+.settings-home .settings-home-hero .hero-card{bottom:46px}
+.settings-home .settings-home-hero .hero-card.grouped,.settings-home-hero:has(.hero-card.grouped) .hero-card.grouped{top:96px;bottom:auto;max-height:calc(100% - 140px);-webkit-mask-image:linear-gradient(#000 78%,#0000);mask-image:linear-gradient(#000 78%,#0000)}
+.settings-home .settings-home-hero:has(.hero-card.grouped){height:312px}
+.settings-home .settings-home-hero .hero-tag{top:auto;left:14px;bottom:13px;z-index:2;display:inline-flex;align-items:center;gap:5px;padding:6px 11px 6px 9px;font-size:12px;background:#ffffff2e;border:1px solid #ffffff3a}
+.settings-home-hero .hero-tag svg{width:13px;height:13px}
+.settings-home .settings-home-hero .hero-card p{font-size:12px}
+
+/* Tiles */
+.settings-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}
+.settings-tiles>button{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:3px;min-height:116px;padding:14px 15px;border-radius:var(--tile-r);background:var(--tile-bg);box-shadow:0 0 0 1px var(--tile-line);color:var(--tile-ink);text-align:left;overflow:hidden;min-width:0}
+html[data-style=glass] .settings-tiles>button,html[data-style=glass] .settings-home .settings-list{-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);box-shadow:inset 0 1px 0 #ffffff70,0 0 0 1px var(--tile-line),var(--glass-shadow)}
+.settings-home .row-ico{position:absolute;left:14px;top:14px;width:38px;height:38px;border-radius:calc(var(--tile-r) / 2);display:grid;place-items:center;background:var(--tile-ico);color:var(--tile-ink)}
+.settings-home .row-ico svg{width:19px;height:19px;stroke-width:1.7}
+.settings-tiles .tile-arrow{position:absolute;right:14px;top:16px;width:16px;height:16px;color:var(--tile-sub);opacity:.7;stroke-width:1.8}
+.settings-tiles .row-label{font-size:15.5px;font-weight:620;letter-spacing:-.01em;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settings-tiles .row-value{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--tile-sub);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settings-tiles .row-value .dot{width:7px;height:7px;border-radius:50%;flex:none}
+.settings-tiles .state-dot{width:7px;height:7px;border-radius:50%;background:var(--tile-sub);opacity:.6;flex:none}
+#tile-lock.is-on .state-dot{background:#34c759;opacity:1;box-shadow:0 0 0 3px #34c75926}
+#tile-lock.is-on .row-ico{color:#fff;background:var(--tile-ink)}
+html[data-style=night] #tile-lock.is-on .row-ico{background:var(--accent);color:var(--on-accent)}
+
+/* Short list: one icon column, dividers start where the text starts */
+html[data-style] .settings-home .settings-list{border-radius:var(--tile-r)!important;background:var(--tile-bg)!important;box-shadow:0 0 0 1px var(--tile-line)!important;border:0!important;margin:0 0 18px;overflow:hidden}
+.settings-home .settings-list>button{position:relative;display:flex;align-items:center;gap:12px;min-height:56px;padding:0 15px 0 14px;border:0;color:var(--tile-ink);font-size:15.5px;background:none}
+.settings-home .settings-list>button+button:before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--tile-line)}
+.settings-home .settings-list .row-ico{position:static;width:32px;height:32px;border-radius:calc(var(--tile-r) / 2.4)}
+.settings-home .settings-list .row-ico svg{width:17px;height:17px}
+.settings-home .settings-list .row-label{flex:1;font-weight:500}
+.settings-home .settings-list .row-value{color:var(--tile-sub);font-size:14px}
+.settings-home .settings-list .row-chev{width:16px;height:16px;color:var(--tile-sub);opacity:.6}
+html[data-motion=on] .settings-home .settings-list>button.is-pressed{scale:1;background:color-mix(in srgb,var(--tile-ink) 5%,transparent)}
+@media(max-width:760px){body[data-view=settings] .app-shell{padding-bottom:0!important}body[data-view=settings] .settings-scroll{padding-bottom:calc(28px + env(safe-area-inset-bottom))!important}}
+/* Grouped live preview: start under the 实时预览 tag; the list fades out if it is longer than the space, the remaining line stays */
+.settings-preview:has(.mini-card.grouped) .mini-card.grouped{max-height:calc(100% - 50px)}
+.mini-card.grouped .mini-list{-webkit-mask-image:linear-gradient(#000 calc(100% - 18px),#0000);mask-image:linear-gradient(#000 calc(100% - 18px),#0000)}
+
+/* ================= 1.16 ================= */
+/* 数据: backup state on top, the buttons as rows, quiet links under the box */
+.backup-head{display:flex;gap:12px;align-items:flex-start;padding:2px 0 14px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.backup-head>svg{flex:none;width:34px;height:34px;padding:8px;border-radius:11px;background:color-mix(in srgb,currentColor 8%,transparent)}
+.backup-head b{display:block;font-size:15px;font-weight:620}
+#backup-state.is-old{color:#c86a12}
+@media(prefers-color-scheme:dark){#backup-state.is-old{color:#ffb35c}}
+html[data-style=night] #backup-state.is-old{color:#ffb35c}
+.backup-head small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.settings-page[data-page=data] .button-row{display:flex;flex-direction:column;gap:0}
+.settings-page[data-page=data] .button-row .secondary-button{justify-content:flex-start;gap:12px;min-height:50px;border:0;background:none!important;box-shadow:none!important;padding:0 2px;font-size:15px;border-radius:0}
+.settings-page[data-page=data] .button-row .secondary-button+.secondary-button{border-top:1px solid var(--line)}
+.settings-page .data-links{display:flex;justify-content:center;gap:22px;border:0!important;margin:16px 0 0!important;padding:0!important}
+.settings-page .data-links a{font-size:12.5px;color:var(--muted);text-decoration:none}
+/* Add sheet: default choices light, changed choices dark; rows that scroll fade at the right edge */
+#add-form .chip.active.is-default{background:color-mix(in srgb,var(--ink,#1d1d1f) 8%,transparent)!important;color:var(--ink,#1d1d1f)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink,#1d1d1f) 16%,transparent)!important;font-weight:600}
+html[data-style=night] #add-form .chip.active.is-default{background:#ffffff14!important;color:#f5f5f7!important;box-shadow:inset 0 0 0 1px #ffffff24!important}
+@media(prefers-color-scheme:dark){#add-form .chip.active.is-default{background:#ffffff14!important;color:#f5f5f7!important;box-shadow:inset 0 0 0 1px #ffffff24!important}}
+#add-form .add-row .chip-row{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),#0000);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),#0000);padding-right:28px}
+/* Idle timer = a quiet outline; filled only while it runs or is paused */
+.task-row .timer-pill:not(.is-on):not(.is-paused){height:30px;padding:0 10px 0 8px;background:transparent!important;color:var(--ink,#1d1d1f)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink,#1d1d1f) 20%,transparent);font-weight:550}
+.task-row .timer-pill:not(.is-on):not(.is-paused) svg{width:11px;height:11px;opacity:.8}
+html[data-style=night] .task-row .timer-pill:not(.is-on):not(.is-paused){color:#e5e5ea!important;box-shadow:inset 0 0 0 1px #ffffff2a}
+@media(prefers-color-scheme:dark){.task-row .timer-pill:not(.is-on):not(.is-paused){color:#e5e5ea!important;box-shadow:inset 0 0 0 1px #ffffff2a}}
+/* 外观 tabs */
+.look-tabs{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:3px;margin:6px 0 16px;border-radius:13px;background:color-mix(in srgb,var(--ink,#1d1d1f) 7%,transparent)}
+.look-tabs button{position:relative;z-index:1;height:34px;border-radius:10px;font-size:14px;font-weight:600;color:var(--muted);transition:color .25s}
+.look-tabs button[aria-selected=true]{color:var(--ink)}
+.look-tabs-pill{position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);border-radius:10px;background:var(--surface-strong,#fff);box-shadow:0 1px 3px #0000001f,0 0 0 .5px #0000000d;transition:translate .42s cubic-bezier(.34,1.3,.64,1)}
+.settings-page[data-tab=card] .look-tabs-pill{translate:100% 0}
+@media(prefers-color-scheme:dark){.look-tabs-pill{background:#3a3a3c}}
+html[data-style=night] .look-tabs-pill{background:#2a2a2d}
+html[data-style=night] .look-tabs{background:#ffffff0f}
+html[data-style=paper] .look-tabs,html[data-style=paper] .look-tabs-pill{border-radius:7px}
+.settings-page[data-tab=app] .look-section[data-look=card],.settings-page[data-tab=card] .look-section[data-look=app]{display:none}
+.settings-page:not([data-tab=all]) .look-section .look-group{display:none}
+html[data-motion=on] .settings-page[data-tab] .look-section{animation:tab-in .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes tab-in{from{opacity:0;translate:0 6px}}
+.motion-settings .ag-switch{display:flex;align-items:center;justify-content:space-between;gap:12px}
+/* One selected style for every picker on 外观: a 2px ring in the text colour; no extra ticks or radio dots */
+.swatch input:checked~svg,.swatch input:checked~i{display:none!important}
+.swatch:has(input:checked){outline:2px solid var(--color);outline-offset:4px}
+.wallpaper-library .wallpaper-choice.active:after{display:none!important}
+.segmented button .seg-check,.segmented button:after{display:none!important}
+/* 分组: quiet rows that open into an editor */
+.group-list{gap:0!important;margin:0 0 4px!important}
+.group-list .group-row{display:block!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+.group-list .group-row+.group-row{border-top:1px solid var(--line)!important}
+.group-head{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:0 2px;text-align:left;color:var(--ink)}
+.group-head .group-icon-btn{width:34px;height:34px}
+.group-head-name{flex:1;min-width:0;font-size:15.5px;font-weight:560;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.group-head-count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.group-head>svg:last-child{width:16px;height:16px;color:var(--muted);opacity:.7;transition:rotate .35s cubic-bezier(.34,1.4,.64,1)}
+.group-row.is-open .group-head>svg:last-child{rotate:180deg}
+.group-editor{opacity:0;transition:opacity .25s}
+.group-row.is-open .group-editor{display:block;opacity:1;padding:0 2px 14px}
+.group-row:not(.is-open) .group-editor{height:0;overflow:hidden;visibility:hidden}
+.group-field{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;gap:10px;padding:8px 0}
+.group-field>span{font-size:13px;color:var(--muted)}
+.group-field .group-name{height:40px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 4%,transparent);font-size:15px;color:var(--ink);width:100%}
+.group-field .group-name:focus{outline:2px solid var(--ink);outline-offset:-1px}
+.group-field .group-colors{display:flex;flex-wrap:wrap;gap:10px}
+.group-field .group-color{width:26px;height:26px;border-radius:50%;background:var(--c);border:0}
+.group-field .group-color.active{outline:2px solid var(--c);outline-offset:3px}
+.group-field .group-icons{padding:0;grid-template-columns:repeat(auto-fill,minmax(38px,1fr))}
+.group-field .group-icon-choice{height:38px}
+.group-field .group-icon-choice.active{background:color-mix(in srgb,var(--g) 16%,transparent);color:var(--g);box-shadow:inset 0 0 0 1.5px var(--g)}
+.group-delete{display:inline-flex;align-items:center;gap:6px;margin-top:6px;height:36px;padding:0 4px;font-size:13.5px;color:#d0453a}
+.group-delete svg{width:15px;height:15px}
+#add-group{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:0 2px;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--ink);font-size:15.5px;font-weight:560;justify-content:flex-start}
+#add-group svg{width:34px;height:34px;padding:8px;border-radius:11px;background:color-mix(in srgb,var(--ink) 7%,transparent)}
+/* Secondary text a step darker so it reads on bright wallpapers */
+html[data-style=glass]{--muted:#5f6066}
+@media(prefers-color-scheme:dark){html[data-style=glass]{--muted:#a1a1a8}}
+html[data-motion=on] .group-row.is-open .group-editor{animation:row-in .36s cubic-bezier(.2,.8,.2,1)}
+.settings-page #add-group svg{display:block}
+.group-field .group-colors,.group-field .group-icons{grid-column:auto!important;grid-row:auto!important}
+.group-field{align-items:start}
+.group-field>span{padding-top:10px}
+.group-field:has(.group-colors)>span{padding-top:4px}
+html[data-motion=on] .completed-section summary svg,html[data-motion=on] .more-appearance>summary svg{transition:transform .42s cubic-bezier(.34,1.5,.64,1)}
+
+/* 1.16.1 running timer on the lock card: solid pill in the check colour, text in its opposite (was card-bg = almost clear) */
+.lock-timer.is-on{background:var(--card-check);color:var(--card-on-check,#1d1d1f)!important;font-weight:650;box-shadow:0 1px 6px #0000001f}
+.lock-timer.is-on svg{color:var(--card-on-check,#1d1d1f)}
+.lock-timer.is-on:before{background:color-mix(in srgb,var(--card-on-check,#1d1d1f) 12%,transparent)}
+.lock-timer.is-paused{opacity:.9}
+
+/* ================= 1.18 settings home: a short preview strip, a slim Pro row, then one grouped list =================
+   (the user found the tall preview and the 2×2 tiles crowded) */
+.settings-home .settings-home-hero,.settings-home .settings-home-hero:has(.hero-card.grouped){height:124px;border-radius:20px;margin:2px 0 10px}
+.settings-home .settings-home-hero:after{inset:0;height:auto;background:linear-gradient(90deg,#00000085,#00000026 58%,#0000000d)}
+.settings-home .settings-home-hero .hero-clock{left:18px;right:auto;top:auto;bottom:16px;align-items:flex-start;z-index:1}
+.settings-home .hero-clock b{font-size:40px;letter-spacing:-1.2px}
+.settings-home .hero-clock small{font-size:11.5px;opacity:.9;margin-bottom:1px}
+.settings-home .settings-home-hero .hero-card,.settings-home .settings-home-hero .hero-card.grouped,.settings-home .settings-home-hero:has(.hero-card.grouped) .hero-card.grouped{left:auto;right:10px;top:10px;bottom:10px;width:min(52%,210px);max-height:none;padding:10px 12px;border-radius:14px;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;-webkit-mask-image:none;mask-image:none;z-index:1}
+.settings-home .settings-home-hero .hero-card.grouped{background:var(--card-bg,#1c1c1ecc)!important;-webkit-backdrop-filter:blur(var(--card-blur,18px)) saturate(1.3)!important;backdrop-filter:blur(var(--card-blur,18px)) saturate(1.3)!important;box-shadow:inset 0 0 0 1px #ffffff2a}
+.settings-home .settings-home-hero .hero-card p{margin:0 0 2px;font-size:11.5px;font-weight:600;opacity:.9}
+.settings-home .settings-home-hero .hero-card #home-card-rows>span{margin-top:5px;font-size:12.5px;gap:7px}
+.settings-home .settings-home-hero .hero-card #home-card-rows>span:before{width:11px;height:11px}
+.settings-home .settings-home-hero .hero-card #home-card-rows>span:nth-child(n+3){display:none}
+.settings-home .settings-home-hero .hero-card .mini-group{display:none}
+.settings-home .settings-home-hero .hero-card .hero-foot{margin-top:auto;font-size:11.5px;opacity:.85}
+.settings-home .settings-home-hero .hero-card.grouped p{margin:0;text-shadow:none}
+.settings-home .settings-home-hero .hero-tag{display:none}
+
+/* the four sections as one list: icon, name, current value, chevron */
+.settings-home .settings-tiles{display:block;margin:0 0 12px;border-radius:var(--tile-r);background:var(--tile-bg);box-shadow:0 0 0 1px var(--tile-line);overflow:hidden}
+html[data-style=glass] .settings-home .settings-tiles{-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);box-shadow:inset 0 1px 0 #ffffff70,0 0 0 1px var(--tile-line),var(--glass-shadow)}
+.settings-home .settings-tiles>button,html[data-style] .settings-home .settings-tiles>button{flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;width:100%;min-height:56px;padding:0 15px 0 14px;border-radius:0;background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.settings-home .settings-tiles>button+button:before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--tile-line)}
+.settings-home .settings-tiles .row-ico{position:static;width:32px;height:32px;flex:none;border-radius:calc(var(--tile-r) / 2.4)}
+.settings-home .settings-tiles .row-ico svg{width:17px;height:17px}
+.settings-home .settings-tiles .row-label{flex:1;min-width:0;font-size:16px;font-weight:500;letter-spacing:0}
+.settings-home .settings-tiles .row-value{flex:none;max-width:46%;font-size:14px}
+.settings-home .settings-tiles .row-chev{width:16px;height:16px;flex:none;color:var(--tile-sub);opacity:.6}
+html[data-motion=on] .settings-home .settings-tiles>button.is-pressed{scale:1;background:color-mix(in srgb,var(--tile-ink) 5%,transparent)!important}
+/* Pro wallpapers keep their picture at the bottom: show that part in the short strip */
+html[data-pro-wall] .settings-home .settings-home-hero img{object-position:center 88%}
+/* light Pro wallpapers use dark clock ink: give it a light veil instead of the dark one */
+html:is([data-pro-wall=dawn],[data-pro-wall=day],[data-pro-wall=bloom],[data-pro-wall=riso],[data-pro-wall=room],[data-pro-wall=fluff]) .settings-home .settings-home-hero:after{background:linear-gradient(90deg,#fbfaf6f2,#fbfaf6c7 40%,#fbfaf600 68%)}
+/* 1.18 motion: one curve for moving between pages (fast start, long soft landing), rows cascade inside their list */
+.page-enter{animation:page-enter .44s cubic-bezier(.32,.72,0,1)}
+.page-back{animation:page-back .4s cubic-bezier(.32,.72,0,1)}
+.view-enter{animation:view-enter .4s cubic-bezier(.32,.72,0,1)}
+@keyframes page-enter{from{opacity:0;transform:translateX(40px)}60%{opacity:1}}
+@keyframes page-back{from{opacity:0;transform:translateX(-28px)}60%{opacity:1}}
+@keyframes view-enter{from{opacity:0;transform:translateY(14px) scale(.985)}}
+html[data-motion=on] :is(.view-enter,.page-back) .settings-home .settings-tiles{animation:tile-in .5s cubic-bezier(.32,.72,0,1) both;animation-delay:50ms}
+html[data-motion=on] :is(.view-enter,.page-back) .settings-home .settings-tiles>button{animation:row-in .42s cubic-bezier(.32,.72,0,1) both;animation-delay:calc(var(--i,0) * 32ms + 90ms)}
+html[data-motion=on] :is(.view-enter,.page-back) .settings-home .settings-pro-row,html[data-motion=on] :is(.view-enter,.page-back) .settings-home .pro-banner{animation:row-in .45s cubic-bezier(.32,.72,0,1) both;animation-delay:30ms}
+/* bottom sheets glide up and settle (no bounce that opens a gap under them); dim fades with them */
+@media(max-width:760px){html[data-motion=on] dialog.sheet[open]{animation:sheet-up .5s cubic-bezier(.32,.72,0,1)}html[data-motion=on] dialog.sheet[open]::backdrop{animation:fade-in .4s ease both}}
+html[data-motion=on] dialog[open]:not(.sheet){animation:sheet-in .42s cubic-bezier(.32,1.12,.6,1)}
+/* 1.19: a light phone wallpaper must not wash out the white clock and labels — a little shade all the way down, more at the edges */
+html.system-wallpaper body.lock-mode .wallpaper-shade{background:linear-gradient(180deg,#0000005c 0%,#00000033 30%,#0000001f 60%,#00000066 100%)!important}

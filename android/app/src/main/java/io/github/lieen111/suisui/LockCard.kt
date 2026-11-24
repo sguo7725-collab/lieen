@@ -1,0 +1,159 @@
+package io.github.lieen111.suisui
+
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.os.Build
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StrikethroughSpan
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import java.util.Calendar
+
+/**
+ * The lock-screen card: one persistent notification listing today's to-dos with "完成" buttons.
+ * Visible on the lock screen (VISIBILITY_PUBLIC) and tappable without unlocking where the system allows.
+ */
+object LockCard {
+    private const val CHANNEL = "lock_card"
+    const val NOTIFICATION_ID = 1001
+    private const val ACCENT = 0xFF1D1D1F.toInt()
+    const val ACTION_COMPLETE = "io.github.lieen111.suisui.COMPLETE"
+
+    fun permissionGranted(ctx: Context): Boolean =
+        Build.VERSION.SDK_INT < 33 ||
+            ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+    fun notificationsAllowed(ctx: Context): Boolean =
+        permissionGranted(ctx) && NotificationManagerCompat.from(ctx).areNotificationsEnabled()
+
+    private fun ensureChannel(ctx: Context) {
+        val nm = ctx.getSystemService(NotificationManager::class.java)
+        if (nm.getNotificationChannel(CHANNEL) != null) return
+        // Default importance (not "silent") so launchers keep it on the lock screen; no sound or vibration.
+        val channel = NotificationChannel(CHANNEL, ctx.getString(R.string.channel_name), NotificationManager.IMPORTANCE_DEFAULT).apply {
+            description = ctx.getString(R.string.channel_description)
+            lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+            setSound(null, null)
+            enableVibration(false)
+            setShowBadge(true)
+        }
+        nm.createNotificationChannel(channel)
+    }
+
+    private fun settingOn(s: org.json.JSONObject?, key: String) = s?.optJSONObject("settings")?.optBoolean(key, false) == true
+
+    /** Redraws the card (and starts/stops the lock view service) from the current data. */
+    @SuppressLint("MissingPermission")
+    fun update(ctx: Context) {
+        val nm = NotificationManagerCompat.from(ctx)
+        val s = TodoStore.state(ctx)
+        ScreenService.sync(ctx)
+        // Reminders, the home-screen widget and the midnight refresh work whether or not the lock card is on.
+        runCatching { Reminders.schedule(ctx) }
+        runCatching { SuiSuiWidget.updateAll(ctx) }
+        if (s != null) scheduleMidnight(ctx)
+        if (s == null || (!settingOn(s, "lockNotify") && !ScreenService.running && !ScreenService.enabled(ctx))) {
+            nm.cancel(NOTIFICATION_ID); return
+        }
+        if (!notificationsAllowed(ctx)) return
+        try { nm.notify(NOTIFICATION_ID, current(ctx)) } catch (e: SecurityException) { /* permission revoked */ }
+    }
+
+    fun current(ctx: Context): android.app.Notification {
+        ensureChannel(ctx)
+        val s = TodoStore.state(ctx)
+        val openApp = PendingIntent.getActivity(
+            ctx, 0,
+            Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val builder = NotificationCompat.Builder(ctx, CHANNEL)
+            .setSmallIcon(R.drawable.ic_stat_check)
+            .setColor(ACCENT)
+            .setContentIntent(openApp)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(false)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+        if (s == null || !settingOn(s, "lockNotify")) {
+            return builder.setContentTitle(Lang.t(ctx, "碎碎清单锁屏已开启", "SuiSui lock screen is on")).setContentText(Lang.t(ctx, "亮屏即可看到今天的待办", "Wake the screen to see today's to-dos")).setOngoing(true).build()
+        }
+
+        val open = TodoStore.pending(s)
+        val done = TodoStore.done(s)
+        // Privacy: on a secured lock screen Android shows the public version (count only, no buttons).
+        if (settingOn(s, "lockPrivacy")) {
+            val publicVersion = NotificationCompat.Builder(ctx, CHANNEL)
+                .setSmallIcon(R.drawable.ic_stat_check)
+                .setColor(ACCENT)
+                .setContentTitle(if (open.isEmpty()) Lang.t(ctx, "今天的事都完成了", "All done for today") else Lang.t(ctx, "今天还有 ${open.size} 件待办", "${open.size} left today"))
+                .setContentText(Lang.t(ctx, "解锁后查看", "Unlock to see"))
+                .setShowWhen(false)
+                .build()
+            builder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setPublicVersion(publicVersion)
+        }
+        if (open.isEmpty()) {
+            builder.setContentTitle(if (done.isEmpty()) Lang.t(ctx, "今天还没有待办", "Nothing for today yet") else Lang.t(ctx, "今天的事，圆满完成。", "Today's done. Well done."))
+                .setContentText(if (done.isEmpty()) Lang.t(ctx, "打开碎碎清单添加一件", "Open SuiSui to add one") else Lang.t(ctx, "完成了 ${done.size} 件", "${done.size} done"))
+                .setOngoing(ScreenService.running)
+                .setAutoCancel(!ScreenService.running)
+        } else {
+            val style = NotificationCompat.InboxStyle()
+            open.take(5).forEach { style.addLine("○  " + it.optString("title")) }
+            if (open.size > 5) style.addLine(Lang.t(ctx, "…还有 ${open.size - 5} 件", "…${open.size - 5} more"))
+            // Finished items stay visible at the end, struck through and dimmed, like the app's card.
+            done.takeLast(2).forEach {
+                val line = SpannableString("✓  " + it.optString("title"))
+                line.setSpan(StrikethroughSpan(), 0, line.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                line.setSpan(ForegroundColorSpan(Color.argb(128, 128, 128, 132)), 0, line.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                style.addLine(line)
+            }
+            style.setSummaryText(if (done.isEmpty()) Lang.t(ctx, "今天的待办", "Today's to-dos") else Lang.t(ctx, "已完成 ${done.size} 件", "${done.size} done"))
+            builder.setContentTitle(Lang.t(ctx, "今天还有 ${open.size} 件待办", "${open.size} left today"))
+                .setContentText(Lang.t(ctx, "下一件：", "Next: ") + open.first().optString("title"))
+                .setStyle(style)
+                .setOngoing(true)
+            open.take(3).forEach { task ->
+                val id = task.optString("id")
+                val complete = PendingIntent.getBroadcast(
+                    ctx, id.hashCode(),
+                    Intent(ctx, CompleteReceiver::class.java).setAction(ACTION_COMPLETE).putExtra("id", id),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+                builder.addAction(
+                    NotificationCompat.Action.Builder(0, "✓ " + short(task.optString("title")), complete)
+                        .setAuthenticationRequired(false)
+                        .build()
+                )
+            }
+        }
+        return builder.build()
+    }
+
+    private fun short(title: String) = if (title.length > 7) title.take(7) + "…" else title
+
+    /** Refresh right after midnight so daily items reset and yesterday's finished items leave the card. */
+    private fun scheduleMidnight(ctx: Context) {
+        val am = ctx.getSystemService(AlarmManager::class.java) ?: return
+        val pi = PendingIntent.getBroadcast(
+            ctx, 7, Intent(ctx, MidnightReceiver::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val next = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 1); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi)
+    }
+}

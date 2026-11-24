@@ -1,0 +1,150 @@
+package io.github.lieen111.suisui
+
+import android.content.Context
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
+import java.util.Calendar
+import java.util.Locale
+
+/**
+ * Native copy of the web app's state (same JSON as localStorage `suisui-locktodo-v1`, without the
+ * wallpaper photo). The web app writes it through the JS bridge; lock-screen "完成" taps write it here.
+ * Rules mirror app/app.js: pending first (pinned first), done in completion order, new-day rollover.
+ */
+object TodoStore {
+    private const val FILE = "suisui-data.json"
+    private const val ARCHIVE_LIMIT = 300
+
+    /** Set by MainActivity while visible, so a lock-screen tap refreshes the open web view. */
+    @Volatile
+    var onChange: (() -> Unit)? = null
+
+    private fun file(ctx: Context) = File(ctx.filesDir, FILE)
+
+    @Synchronized
+    fun read(ctx: Context): String? = file(ctx).takeIf { it.exists() }?.readText()
+
+    /** Revision of a saved record; every writer bumps it so an older copy cannot overwrite a newer one. */
+    fun rev(json: String?): Long = runCatching { JSONObject(json ?: return 0L).optLong("rev", 0L) }.getOrDefault(0L)
+
+    /**
+     * Saves a record from a web page unless it is older than what is stored (a page that stayed open in the
+     * background with stale data, e.g. the lock view). Returns false when rejected; the page then reloads.
+     */
+    @Synchronized
+    fun writeFromPage(ctx: Context, json: String): Boolean {
+        val current = read(ctx)
+        if (current != null && rev(json) <= rev(current) && rev(current) > 0) return false
+        write(ctx, json)
+        return true
+    }
+
+    @Synchronized
+    fun write(ctx: Context, json: String) {
+        val target = file(ctx)
+        val tmp = File(target.parentFile, "$FILE.tmp")
+        tmp.writeText(json)
+        if (!tmp.renameTo(target)) {
+            target.writeText(json)
+            tmp.delete()
+        }
+    }
+
+    /** Current state with the new-day rules applied (and persisted if they changed anything). */
+    @Synchronized
+    fun state(ctx: Context): JSONObject? {
+        val raw = read(ctx) ?: return null
+        val s = try { JSONObject(raw) } catch (e: Exception) { return null }
+        if (rollover(s)) { s.put("rev", s.optLong("rev", 0L) + 1); write(ctx, s.toString()) }
+        return s
+    }
+
+    @Synchronized
+    fun complete(ctx: Context, id: String): Boolean {
+        val s = state(ctx) ?: return false
+        val tasks = s.optJSONArray("tasks") ?: return false
+        var latest = 0L
+        for (i in 0 until tasks.length()) latest = maxOf(latest, tasks.getJSONObject(i).optLong("completedAt", 0L) + 1)
+        for (i in 0 until tasks.length()) {
+            val t = tasks.getJSONObject(i)
+            if (t.optString("id") == id && !t.optBoolean("done")) {
+                t.put("done", true)
+                t.put("completedAt", maxOf(System.currentTimeMillis(), latest))
+                // Same line app.js adds, so lock-screen completions show up in the weekly / monthly review.
+                val log = s.optJSONArray("log") ?: JSONArray().also { s.put("log", it) }
+                log.put(JSONObject().put("id", id).put("title", t.optString("title")).put("group", t.optString("group", "work"))
+                    .put("at", t.optLong("completedAt")).put("min", t.optLong("focusMs", 0L) / 60000))
+                t.put("focusMs", 0)
+                s.put("rev", s.optLong("rev", 0L) + 1)
+                write(ctx, s.toString())
+                return true
+            }
+        }
+        return false
+    }
+
+    /** Same as dueToday() in app.js: repeating tasks by weekday, one-off tasks when undated or due. */
+    fun dueToday(t: JSONObject, cal: Calendar = Calendar.getInstance()): Boolean {
+        val weekday = cal.get(Calendar.DAY_OF_WEEK) - 1 // 0 = Sunday, like JavaScript
+        return when (t.optString("repeat", "none")) {
+            "daily" -> true
+            "weekdays" -> weekday in 1..5
+            "weekly" -> weekday == t.optInt("repeatDay", weekday)
+            else -> {
+                val date = t.optString("date", "")
+                date.isEmpty() || date <= dayKey(cal)
+            }
+        }
+    }
+
+    /** Today's open tasks, pinned first. Tasks scheduled for later stay off the lock screen. */
+    fun pending(s: JSONObject): List<JSONObject> {
+        val open = items(s).filter { !it.optBoolean("done") && dueToday(it) }
+        return open.filter { it.optBoolean("pinned") } + open.filter { !it.optBoolean("pinned") }
+    }
+
+    fun done(s: JSONObject): List<JSONObject> =
+        items(s).filter { it.optBoolean("done") }.sortedBy { it.optLong("completedAt", 0L) }
+
+    private fun items(s: JSONObject): List<JSONObject> {
+        val tasks = s.optJSONArray("tasks") ?: return emptyList()
+        return (0 until tasks.length()).mapNotNull { tasks.optJSONObject(it) }
+    }
+
+    fun dayKey(cal: Calendar = Calendar.getInstance()): String =
+        String.format(Locale.US, "%04d-%02d-%02d", cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
+
+    private fun startOfToday(): Long = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    /** Same as rollover() in app.js. Records without a day count as today. */
+    fun rollover(s: JSONObject): Boolean {
+        val today = dayKey()
+        val day = s.optString("day", "")
+        if (day == today) return false
+        if (day.isEmpty()) { s.put("day", today); return true }
+        val cutoff = startOfToday()
+        val autoArchive = s.optJSONObject("settings")?.optBoolean("autoArchive", true) ?: true
+        val tasks = s.optJSONArray("tasks") ?: JSONArray()
+        val archive = s.optJSONArray("archive") ?: JSONArray()
+        val keep = JSONArray()
+        val now = System.currentTimeMillis()
+        for (i in 0 until tasks.length()) {
+            val t = tasks.optJSONObject(i) ?: continue
+            val done = t.optBoolean("done")
+            when {
+                done && t.optString("repeat", "none") != "none" -> { t.put("done", false); t.put("completedAt", 0); keep.put(t) }
+                done && autoArchive && t.optLong("completedAt", 0L) < cutoff -> { t.put("archivedAt", now); archive.put(t) }
+                else -> keep.put(t)
+            }
+        }
+        val trimmed = JSONArray()
+        for (i in maxOf(0, archive.length() - ARCHIVE_LIMIT) until archive.length()) trimmed.put(archive.get(i))
+        s.put("tasks", keep)
+        s.put("archive", trimmed)
+        s.put("day", today)
+        return true
+    }
+}

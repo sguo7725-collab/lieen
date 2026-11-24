@@ -1,0 +1,511 @@
+/* 1.18: one bundled face for the app's own words (titles, labels, buttons), the same on every phone.
+   Noto Sans CJK SC subset (vendor/fonts/suisui-sans, OFL); Latin comes from Geist. Task text keeps the phone's font. */
+@font-face{font-family:'SuiSui Sans';font-weight:500;font-display:swap;src:url(vendor/fonts/suisui-sans/noto-sans-sc-Medium.woff2) format('woff2')}
+@font-face{font-family:'SuiSui Sans';font-weight:700;font-display:swap;src:url(vendor/fonts/suisui-sans/noto-sans-sc-Bold.woff2) format('woff2')}
+:root{--ui-face:Geist,'SuiSui Sans',-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans CJK SC",sans-serif}
+
+/* ================= 1.18 settings system =================
+   The user found the settings pages messy: unclear levels, cheap-looking corner titles, tiles that grow or pop
+   an outline when chosen. One quiet system for every theme:
+   - top bar and large title in the plain system face, fixed weights;
+   - section label (small, muted) → one card → rows or a grid of equal tiles;
+   - a choice is shown by an inner ring on its picture and a small check, never by a border around the tile,
+     a change of size or a jump. Theme materials (card colour, wallpaper) stay as they are. */
+
+#settings-panel{
+  --s-ink:var(--ink,#1d1d1f);
+  --s-muted:var(--muted,#6e6e73);
+  --s-hair:color-mix(in srgb,var(--s-ink) 10%,transparent);
+  --s-tint:color-mix(in srgb,var(--s-ink) 5%,transparent);
+  --s-sel:var(--s-ink);
+  --s-on-sel:var(--page,#fff);
+  --s-act:var(--s-ink);
+}
+
+/* ---------- top bar: back · title · 完成, and the large 设置 ---------- */
+#settings-panel .settings-top :is(h1,.settings-back,.settings-back span,.nav-button[data-view=tasks]),
+#review-panel .review-top :is(h1,.review-back,.review-back span){font-family:var(--ui-face)!important;text-shadow:none!important;font-style:normal!important}
+body[data-settings-page=index] #settings-panel .settings-top h1{font-size:32px!important;font-weight:700!important;letter-spacing:-.6px!important;line-height:1.15!important;color:var(--s-ink)!important}
+body:not([data-settings-page=index]) #settings-panel .settings-top h1,#review-panel .review-top h1{font-size:17px!important;font-weight:600!important;letter-spacing:0!important;color:var(--s-ink)!important}
+#settings-panel .settings-back,#settings-panel .settings-back span,#review-panel .review-back,#review-panel .review-back span{font-size:17px!important;font-weight:400!important;letter-spacing:0!important;color:var(--s-act)!important}
+#settings-panel .settings-top .nav-button[data-view=tasks]{font-size:17px!important;font-weight:600!important;letter-spacing:0!important;color:var(--s-act)!important;background:none!important;box-shadow:none!important;border:0!important}
+
+/* ---------- sections: small muted label above one card ---------- */
+#settings-panel .settings-page legend,#settings-panel .settings-page .ag-title,#settings-panel .look-group{font-family:var(--ui-face)!important;font-size:13px!important;font-weight:500!important;letter-spacing:0!important;color:var(--s-muted)!important;text-transform:none!important;text-shadow:none!important}
+#settings-panel .settings-page fieldset{margin-top:38px}
+#settings-panel .settings-page .look-tabs+.look-section>fieldset:first-of-type,#settings-panel .settings-page .look-tabs+.look-section>.look-group+fieldset{margin-top:34px}
+/* the tabs already say which half you are in */
+#settings-panel .settings-page[data-tab] .look-group{display:none}
+#settings-panel .settings-page .setting-note{font-size:13px;line-height:1.55;color:var(--s-muted)!important}
+/* rows inside a card: one line each, hairline between */
+#settings-panel .settings-page .setting-row{min-height:50px;font-size:17px;font-weight:400!important}
+#settings-panel .settings-page .setting-row>span:first-child{font-weight:500}
+
+/* ---------- tiles: equal size, no box around the tile, the picture carries the choice ---------- */
+#settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button){
+  position:relative;transform:none!important;scale:1!important;outline:0!important;transition:color .16s ease!important;animation:none!important}
+#settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.segmented>button,.material-tiles>button){background:none!important;border:0!important;box-shadow:none!important;padding:0!important;border-radius:0!important}
+#settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.segmented>button,.material-tiles>button):is(:focus,:active){outline:0!important;box-shadow:none!important;background:none!important}
+#settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button):focus-visible{outline:2px solid var(--s-sel)!important;outline-offset:3px}
+
+/* the picture of each tile */
+#settings-panel :is(.style-chip .style-demo,.pro-theme-chip :is(.pro-mock,.pro-thumb),.font-chip .font-sample,.theme-chip>span,.segmented .density-demo,.material-tiles .mat-demo){
+  position:relative;display:block;box-sizing:border-box;width:100%;margin:0 0 7px!important;border-radius:12px!important;
+  box-shadow:inset 0 0 0 1px var(--s-hair)!important;transition:box-shadow .18s ease!important;transform:none!important}
+#settings-panel :is(.style-chip.active .style-demo,.pro-theme-chip.active :is(.pro-mock,.pro-thumb),.font-chip.active .font-sample,.theme-chip.active>span,.segmented>button.active .density-demo,.material-tiles>button.active .mat-demo){
+  box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--s-sel) 85%,transparent)!important}
+#settings-panel :is(.font-chip.active .font-sample,.segmented>button.active .density-demo){background:color-mix(in srgb,var(--s-ink) 12%,transparent)!important}
+/* labels */
+#settings-panel :is(.style-chip strong,.pro-theme-chip strong,.mat-name){display:block;margin:0!important;padding:0!important;font-size:13px!important;font-weight:500!important;color:var(--s-ink)!important;line-height:1.3}
+#settings-panel :is(.style-chip small,.pro-theme-chip small,.material-tiles small){display:block;margin:1px 0 0!important;padding:0!important;font-size:13px!important;color:var(--s-muted)!important;line-height:1.35}
+#settings-panel :is(.font-chip,.theme-chip,.segmented>button){font-size:13px!important;font-weight:500!important;color:var(--s-muted)!important;text-align:center}
+#settings-panel :is(.font-chip.active,.theme-chip.active,.segmented>button.active){color:var(--s-ink)!important;font-weight:600!important}
+#settings-panel :is(.style-chip.active strong,.pro-theme-chip.active strong){font-weight:650!important}
+
+/* the check: a small badge in the picture's top right corner */
+#settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button)::before{
+  content:"";position:absolute;z-index:3;top:7px;right:7px;width:18px;height:18px;border-radius:50%;pointer-events:none;
+  background:var(--s-sel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/11px no-repeat;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--page,#fff) 80%,transparent);opacity:0;transform:scale(.6);transition:opacity .16s ease,transform .22s cubic-bezier(.32,.72,0,1)}
+#settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button).active::before{opacity:1;transform:none}
+/* dark ink → white badge with a dark tick */
+html:is([data-style=night],[data-pro-skin=night]) #settings-panel{--s-sel:#f2f2f4}
+html:is([data-style=night],[data-pro-skin=night]) #settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button)::before{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E")}
+@media(prefers-color-scheme:dark){html:not([data-pro-skin]):is([data-style=glass],[data-style=paper]) #settings-panel{--s-sel:#f2f2f4}
+  html:not([data-pro-skin]):is([data-style=glass],[data-style=paper]) #settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button)::before{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E")}}
+/* the Pro lock badge sits where the check would: move it left of it */
+#settings-panel .pro-theme-chip .pro-lock-badge{top:7px!important;left:7px!important;right:auto!important}
+
+/* ---------- grids ---------- */
+#settings-panel .style-presets{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;padding:2px 0 14px}
+#settings-panel .style-chip .style-demo{height:78px!important;overflow:hidden}
+#settings-panel .pro-theme-row{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px 10px!important;padding:2px 0 14px}
+#settings-panel .pro-theme-chip :is(.pro-mock,.pro-thumb){height:68px!important;overflow:hidden}
+#settings-panel .font-presets{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px 10px!important;padding:2px 0 6px}
+#settings-panel .font-chip{display:flex!important;flex-direction:column;align-items:stretch;min-width:0}
+#settings-panel .font-chip .font-sample{display:grid!important;place-items:center;height:52px!important;font-size:17px!important;color:var(--s-ink)!important;background:var(--s-tint)!important;white-space:nowrap;overflow:hidden}
+#settings-panel .theme-presets{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;padding:2px 0 14px}
+#settings-panel .theme-chip{display:flex!important;flex-direction:column;align-items:stretch}
+#settings-panel .theme-chip>span{height:56px!important;background:var(--chip)!important}
+#settings-panel .segmented{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;padding:2px 0 14px!important;background:none!important;box-shadow:none!important;border:0!important}
+#settings-panel .segmented>button{display:flex!important;flex-direction:column;align-items:stretch;min-height:0!important}
+#settings-panel .segmented .density-demo{height:58px!important;background:var(--s-tint)!important}
+#settings-panel .wallpaper-library{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;padding:2px 0 12px}
+#settings-panel .wallpaper-choice{border:0!important;border-radius:12px!important;box-shadow:inset 0 0 0 1px var(--s-hair)!important;padding:0!important;overflow:hidden;aspect-ratio:3/4.6;height:auto!important}
+#settings-panel .wallpaper-choice::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 2px transparent;pointer-events:none;transition:box-shadow .18s ease;display:block!important;background:none!important;opacity:1!important;transform:none!important;width:auto!important;height:auto!important}
+#settings-panel .wallpaper-choice.active{box-shadow:none!important;outline:0!important;border:0!important}
+#settings-panel .wallpaper-choice.active::after{box-shadow:inset 0 0 0 2px var(--s-sel)}
+#settings-panel .wallpaper-choice>span{font-size:13px!important;font-weight:600!important}
+#settings-panel .wallpaper-choice.system{background:var(--s-tint)!important}
+
+/* swatches: the ring sits inside the dot, the label never moves */
+#settings-panel .swatches .swatch{transform:none!important;scale:1!important;animation:none!important}
+#settings-panel .swatches .swatch span{font-size:13px!important;color:var(--s-muted)!important;font-weight:500!important}
+#settings-panel .swatches .swatch:has(input:checked) span{color:var(--s-ink)!important;font-weight:600!important}
+
+/* ---------- 动效: three clear rows ---------- */
+#settings-panel .motion-settings .ag-switch{display:flex!important;align-items:center;justify-content:space-between;gap:14px;padding:14px 0!important;margin:0!important;border-bottom:1px solid var(--s-hair)}
+#settings-panel .motion-settings .ag-switch strong{display:block;font-size:17px;font-weight:500;color:var(--s-ink)}
+#settings-panel .motion-settings .ag-switch small{display:block;margin-top:3px;font-size:13px;color:var(--s-muted);line-height:1.45}
+#settings-panel .motion-settings .ag-row{display:flex;align-items:baseline;justify-content:space-between;margin:16px 0 4px!important}
+#settings-panel .motion-settings .ag-row .ag-title{margin:0!important;font-size:17px!important;font-weight:500!important;color:var(--s-ink)!important}
+#settings-panel .motion-settings .ag-row output{font-size:13px;color:var(--s-muted)}
+#settings-panel .motion-settings .slider-row{padding:4px 0 16px;border-bottom:1px solid var(--s-hair)}
+#settings-panel #pro-effects-inline{padding:0 0 14px}
+#settings-panel #pro-effects-inline .ag-row{margin-top:16px!important}
+#settings-panel .pro-effect-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#settings-panel .pro-effect-row .chip{transform:none!important;scale:1!important;animation:none!important}
+
+/* ---------- 字号 ---------- */
+#settings-panel .type-settings .setting-row{border-top:1px solid var(--s-hair);margin-top:10px}
+
+/* ---------- live preview at the top of 外观 / 锁屏: whole card visible, no label ---------- */
+#settings-panel .mini-tag{display:none!important}
+@media(max-width:760px){
+  #settings-panel .settings-preview{height:226px!important;padding-bottom:14px!important;align-items:flex-end}
+  #settings-panel .settings-preview:has(.mini-card.grouped) .mini-card.grouped{max-height:calc(100% - 26px)!important}
+}
+
+/* ---------- buttons inside a card read as rows (icon + text in the theme ink), not boxed buttons ---------- */
+#settings-panel .settings-page fieldset .secondary-button.inline:not([hidden]){display:flex!important;align-items:center;gap:10px;width:calc(100% + 32px);margin:4px -16px 0!important;padding:0 16px!important;min-height:50px;border:0!important;border-top:1px solid var(--s-hair)!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--s-act)!important;font-size:17px!important;font-weight:500!important;justify-content:flex-start}
+#settings-panel .settings-page fieldset .secondary-button.inline svg{width:18px;height:18px}
+
+/* ---------- 外观 tabs ---------- */
+#settings-panel .look-tabs{margin-top:14px}
+#settings-panel .look-tabs button{font-family:Geist,-apple-system,"PingFang SC",sans-serif!important;font-size:14px!important;font-weight:600!important}
+#settings-panel .font-chip{min-height:0!important;height:auto!important;gap:0!important;line-height:1.3!important}
+#settings-panel .font-chip .font-sample{margin-bottom:6px!important}
+#settings-panel .pro-wall-row .secondary-button{border:0!important;box-shadow:none!important;background:var(--s-tint)!important;color:var(--s-ink)!important;border-radius:10px!important;font-size:13px!important;font-weight:600!important}
+html:not([data-pro-skin]) #settings-panel #tile-lock.is-on .row-ico{color:var(--tile-ink);background:var(--tile-ico)}
+#settings-panel [hidden]{display:none!important}
+
+/* ---------- 完成动效: a little stage that plays the chosen effect ---------- */
+#settings-panel #pro-effects-inline .ag-row{align-items:baseline}
+#settings-panel .fx-hint{font-size:13px;color:var(--s-muted)}
+#settings-panel .fx-stage{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 4px;padding:14px 14px 14px 16px;border-radius:14px;background:var(--s-tint);box-shadow:inset 0 0 0 1px var(--s-hair)}
+#settings-panel .fx-sample{display:flex;align-items:center;gap:12px;min-width:0;font-size:16px;font-weight:500;color:var(--s-ink)}
+#settings-panel .fx-sample-check{position:relative;flex:none;width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1.6px color-mix(in srgb,var(--s-ink) 45%,transparent);transition:background .2s ease,box-shadow .2s ease}
+#settings-panel .fx-sample-check::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 12.5l3.6 3.6 7.4-8'/%3E%3C/svg%3E") center/14px no-repeat;opacity:0;transform:scale(.5);transition:opacity .15s,transform .3s cubic-bezier(.3,1.6,.5,1)}
+#settings-panel .fx-sample.is-done .fx-sample-check{background:var(--s-ink);box-shadow:none;animation:fx-check-pop .42s cubic-bezier(.3,1.6,.5,1)}
+html:is([data-style=night],[data-pro-skin=night]) #settings-panel .fx-sample-check::after{filter:invert(1)}
+#settings-panel .fx-sample.is-done .fx-sample-check::after{opacity:1;transform:none}
+#settings-panel .fx-sample.is-back .fx-sample-text{animation:fx-back .35s ease both}
+@keyframes fx-check-pop{0%{transform:scale(.7)}55%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes fx-back{from{opacity:0;transform:translateY(4px)}}
+#settings-panel .fx-replay{display:inline-flex;align-items:center;gap:6px;flex:none;padding:8px 12px;border-radius:999px;background:color-mix(in srgb,var(--s-ink) 8%,transparent);color:var(--s-ink);font-size:13px;font-weight:600;border:0}
+#settings-panel .fx-replay svg{width:14px;height:14px}
+
+/* ---------- settings home: every row says what is inside ---------- */
+#settings-panel .settings-home :is(.settings-tiles,.settings-list)>button{min-height:62px!important}
+#settings-panel .settings-home .row-label{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.25}
+#settings-panel .settings-home .row-sub{font-size:13px;font-weight:400;color:var(--s-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:0}
+#settings-panel .section-hint{margin:0 0 12px;font-size:13px;line-height:1.5;color:var(--s-muted)}
+
+/* ================= 1.18 icons: Phosphor, filled outlines — strokes off ================= */
+svg.ph{stroke:none!important;stroke-width:0!important}
+
+/* ================= 1.18 add sheet: type and send; one row of value pills, one option row at a time ================= */
+.add-form .add-pills{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin:12px -2px 2px;padding:2px}
+.add-form .add-pills::-webkit-scrollbar{display:none}
+.add-pill{flex:none;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 10px;border:0;border-radius:11px;background:color-mix(in srgb,var(--ink,#1d1d1f) 6%,transparent);color:var(--muted,#6e6e73);font:500 13.5px/1 var(--ui-face);transition:background .18s ease,color .18s ease}
+.add-pill svg{width:16px;height:16px}
+.add-pill .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.add-pill.is-set{background:var(--ink,#1d1d1f);color:#fff}
+.add-pill.open{box-shadow:inset 0 0 0 1.5px var(--ink,#1d1d1f)}
+.add-pill.is-set.open{box-shadow:inset 0 0 0 1.5px var(--ink,#1d1d1f),inset 0 0 0 3px #fff}
+html:is([data-style=night],[data-pro-skin=night]) .add-pill.is-set{background:#f2f2f4;color:#0b0b0c}
+.add-form .add-options .add-row{display:none!important}
+.add-form[data-open=when] .add-row[data-row=when],.add-form[data-open=time] .add-row[data-row=time]:not([hidden]),.add-form[data-open=repeat] .add-row[data-row=repeat],.add-form[data-open=duration] .add-row[data-row=duration],.add-form[data-open=group] .add-row[data-row=group]{display:flex!important;animation:add-row-in .32s cubic-bezier(.32,.72,0,1) both}
+.add-form .add-row .add-label{display:none}
+.add-form .add-options{margin-top:4px}
+@keyframes add-row-in{from{opacity:0;transform:translateY(-4px)}}
+
+/* ================= 1.18 home: fewer things competing — one capsule up top, text tabs, a bar to write in ================= */
+@media(max-width:760px){
+  /* search · review · settings in one glass capsule */
+  #header-actions{display:flex;align-items:center;gap:0;padding:3px;border-radius:999px;background:color-mix(in srgb,var(--surface,#fff) 62%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 0 0 .5px color-mix(in srgb,var(--ink,#1d1d1f) 10%,transparent),0 6px 18px -10px #0003}
+  #header-actions>:is(button,a){width:38px!important;height:38px!important;min-width:0!important;padding:0!important;margin:0!important;border-radius:50%!important;background:none!important;box-shadow:none!important;border:0!important;display:grid!important;place-items:center;color:var(--ink,#1d1d1f)!important}
+  #header-actions>:is(button,a) span,#header-actions .review-entry{font-size:0!important}
+  #header-actions svg{width:20px!important;height:20px!important}
+  html:is([data-style=night],[data-pro-skin=night]) #header-actions{background:#ffffff14;box-shadow:0 0 0 .5px #ffffff22}
+  html:is([data-style=night],[data-pro-skin=night]) #header-actions>:is(button,a){color:#f2f2f4!important}
+
+  /* groups as quiet text tabs: the chosen one is ink, the rest muted, a short bar under it */
+  #filter-tabs{gap:20px!important;border:0!important;margin:2px 0 14px!important;padding:0 2px!important;overflow-x:auto;scrollbar-width:none;background:none!important;box-shadow:none!important}
+  #filter-tabs::-webkit-scrollbar{display:none}
+  #filter-tabs button{flex:none;position:relative;height:34px!important;min-height:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:var(--muted,#6e6e73)!important;font:500 15px/1 var(--ui-face)!important;gap:5px!important}
+  #filter-tabs button>span:last-child{font-size:13px!important;opacity:.7;font-weight:500!important;background:none!important;padding:0!important;color:inherit!important}
+  #filter-tabs button .dot{width:6px!important;height:6px!important}
+  #filter-tabs button.active{color:var(--ink,#1d1d1f)!important;font-weight:650!important}
+  #filter-tabs button.active::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:2px;border-radius:2px;background:currentColor}
+  #filter-tabs button svg{width:15px!important;height:15px!important}
+  html:is([data-style=night],[data-pro-skin=night]) #filter-tabs button.active{color:#f2f2f4!important}
+
+  /* the round + becomes a bar along the bottom that reads as “write here” */
+  body[data-view=tasks]:not(.adding) #fab-add#fab-add{left:16px!important;right:16px!important;width:auto!important;height:54px!important;border-radius:18px!important;display:flex!important;align-items:center;justify-content:flex-end;padding:0 7px 0 18px!important;background:color-mix(in srgb,var(--surface,#fff) 82%,transparent)!important;-webkit-backdrop-filter:blur(22px) saturate(1.5);backdrop-filter:blur(22px) saturate(1.5);box-shadow:0 0 0 .5px color-mix(in srgb,var(--ink,#1d1d1f) 12%,transparent),0 14px 30px -14px #0004!important;color:var(--ink,#1d1d1f)!important;transform:none}
+  body[data-view=tasks]:not(.adding) #fab-add#fab-add::before{content:attr(data-hint);flex:1;text-align:left;font:400 15px/1 var(--ui-face);color:var(--muted,#8b8b92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{width:40px!important;height:40px!important;padding:11px;border-radius:13px;background:var(--accent-fill,var(--accent,#1d1d1f));color:var(--on-accent,#fff)!important;box-sizing:border-box}
+  html:is([data-style=night],[data-pro-skin=night]) body[data-view=tasks]:not(.adding) #fab-add#fab-add{background:#ffffff14!important;box-shadow:0 0 0 .5px #ffffff26!important}
+  html:is([data-style=night],[data-pro-skin=night]) body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#f2f2f4;color:#0b0b0c!important}
+}
+
+/* ================= 1.18 corner buttons: no words — a glass circle with ‹ to go back, a filled circle with ✓ for 完成 ================= */
+#settings-panel .settings-top .settings-back:not([hidden]),#review-panel .review-back:not([hidden]){width:40px!important;height:40px!important;min-width:0!important;min-height:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;background:color-mix(in srgb,var(--surface,#fff) 70%,transparent)!important;-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);box-shadow:0 0 0 .5px color-mix(in srgb,var(--ink,#1d1d1f) 14%,transparent),0 4px 14px -8px #0003!important;border:0!important;color:var(--ink,#1d1d1f)!important}
+#settings-panel .settings-top .settings-back span,#review-panel .review-back span{display:none!important}
+#settings-panel .settings-top .settings-back svg,#review-panel .review-back svg{width:20px!important;height:20px!important;margin:0!important}
+#settings-panel .settings-top .nav-button[data-view=tasks]{width:40px!important;height:40px!important;min-width:0!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center;font-size:0!important;color:transparent!important;background:var(--ink,#1d1d1f)!important;box-shadow:0 6px 16px -8px #0006!important}
+#settings-panel .settings-top .nav-button[data-view=tasks] :is(svg,span){display:none!important}
+#settings-panel .settings-top .nav-button[data-view=tasks]::after{content:"";width:18px;height:18px;background:#fff;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html:is([data-style=night],[data-pro-skin=night]) #settings-panel .settings-top .nav-button[data-view=tasks]{background:#f2f2f4!important}
+html:is([data-style=night],[data-pro-skin=night]) #settings-panel .settings-top .nav-button[data-view=tasks]::after{background:#0b0b0c}
+html:is([data-style=night],[data-pro-skin=night]) :is(#settings-panel .settings-top .settings-back,#review-panel .review-back){background:#ffffff14!important;box-shadow:0 0 0 .5px #ffffff26!important;color:#f2f2f4!important}
+/* titles: the bundled face, calm weights */
+body[data-settings-page=index] #settings-panel .settings-top h1{font-weight:700!important;font-size:30px!important;letter-spacing:-.2px!important}
+body:not([data-settings-page=index]) #settings-panel .settings-top h1{font-weight:500!important;font-size:17px!important;letter-spacing:.06em!important}
+#tasks-panel .today-top h1,#review-panel h1{font-family:var(--ui-face)!important}
+#settings-panel .settings-page legend,#settings-panel .settings-home .row-label,#settings-panel .setting-row>span,.add-pill,#filter-tabs button{font-family:var(--ui-face)!important}
+body[data-settings-page=index] #settings-panel .settings-top .settings-back{display:none!important}
+/* the bar is the same in every theme; the theme only colours its + (themed buttons' decorations step aside) */
+@media(max-width:760px){
+  html[data-pro-skin] body[data-view=tasks]:not(.adding) #fab-add#fab-add{rotate:0deg!important;border-radius:18px!important;width:auto!important;height:54px!important;overflow:visible!important}
+  html[data-pro-skin] body[data-view=tasks]:not(.adding) #fab-add#fab-add::after{display:none!important}
+  html[data-pro-skin] body[data-view=tasks]:not(.adding) #fab-add#fab-add::before{-webkit-mask:none!important;mask:none!important;content:attr(data-hint)!important;position:static!important;inset:auto!important;rotate:0deg!important;width:auto!important;height:auto!important;border-radius:0!important;background:none!important;box-shadow:none!important;animation:none!important;opacity:1!important;flex:1;text-align:left;font:400 15px/1 var(--ui-face);color:var(--muted,#8b8b92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;filter:none!important;transform:none!important}
+  html[data-pro-skin] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{opacity:1!important;margin:0!important;position:static!important;color:#fff!important;transform:none!important;translate:none!important}
+  html[data-pro-skin] body[data-view=tasks]:not(.adding) #fab-add#fab-add{z-index:70!important}
+  html[data-pro-skin=dawn] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:linear-gradient(140deg,#a99fff,#86dcc6 70%,#ffb99b)}
+  html[data-pro-skin=day] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#b43a2c;border-radius:6px;color:#f5f2ec!important}
+  html[data-pro-skin=night] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#f2f2f4;color:#07080d!important}
+  html[data-pro-skin=bloom] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#3b5a87}
+  html[data-pro-skin=riso] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#2f5fb3;box-shadow:2px 2px 0 #ff4fa3}
+  html[data-pro-skin=room] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#2c3a20;color:#efe7c9!important}
+  html[data-pro-skin=fluff] body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#141416;color:#f8f7f4!important}
+  html[data-pro-skin=night] body[data-view=tasks]:not(.adding) #fab-add#fab-add{background:#ffffff12!important;box-shadow:0 0 0 .5px #ffffff26!important}
+}
+@media(max-width:760px) and (prefers-color-scheme:dark){html[data-palette=ink]:not([data-pro-skin]) body[data-view=tasks]:not(.adding) #fab-add#fab-add svg{background:#f2f2f4;color:#1d1d1f!important}}
+
+/* ===================================================================================================
+   1.18 settings, final rhythm. One set of measures for every page and theme:
+   page margin 16 · card inner 20 · section label 13 sits 10 above its card · 32 between sections ·
+   rows ≥ 58 with 16 top/bottom · a note under a row is 13/1.55 and never runs under a switch.
+   =================================================================================================== */
+@media(max-width:760px){
+  #settings-panel .settings-scroll{padding:8px 16px 40px!important}
+  #settings-panel .settings-page fieldset{margin:46px 0 0!important;padding:4px 20px!important;border-radius:22px!important}
+  #settings-panel .settings-page fieldset:first-of-type,#settings-panel .settings-page .look-tabs+.look-section>fieldset:first-of-type{margin-top:40px!important}
+  #settings-panel .settings-page legend{position:absolute!important;top:-27px!important;left:20px!important;margin:0!important;line-height:1!important}
+  /* rows */
+  #settings-panel .settings-page .setting-row{min-height:58px!important;padding:14px 0!important;gap:16px!important;align-items:center!important}
+  #settings-panel .settings-page .setting-row>span:first-child{flex:1;min-width:0;font-size:17px!important;line-height:1.4!important}
+  #settings-panel .settings-page .setting-row .switch{flex:none;margin:0!important}
+  #settings-panel .settings-page .setting-row+.setting-row,#settings-panel .settings-page .setting-note+.setting-row{border-top:1px solid var(--s-hair)}
+  #settings-panel .settings-page .setting-note{margin:-6px 0 0!important;padding:0 64px 16px 0!important;font-size:13px!important;line-height:1.6!important}
+  #settings-panel .settings-page .setting-note:empty{display:none}
+  #settings-panel .settings-page .section-hint{margin:16px 0 14px!important;font-size:13px!important;line-height:1.6!important}
+  /* buttons that live in a card: a row with an inset divider, text on the card's inner margin */
+  #settings-panel .settings-page fieldset .secondary-button.inline:not([hidden]){width:calc(100% + 40px)!important;margin:0 -20px!important;padding:0 20px!important;min-height:56px!important;gap:12px!important;border-top:1px solid var(--s-hair)!important;font-size:17px!important}
+  /* grids get the same inner margin as rows */
+  #settings-panel :is(.style-presets,.pro-theme-row,.font-presets,.theme-presets,.segmented,.wallpaper-library){padding-top:16px!important;padding-bottom:18px!important}
+  #settings-panel .section-hint+:is(.style-presets,.pro-theme-row,.font-presets,.theme-presets,.segmented,.wallpaper-library){padding-top:2px!important}
+  /* settings home */
+  #settings-panel .settings-home :is(.settings-tiles,.settings-list){border-radius:22px!important}
+  #settings-panel .settings-home :is(.settings-tiles,.settings-list)>button{padding:12px 18px 12px 16px!important;min-height:66px!important;gap:14px!important}
+  #settings-panel .settings-home .row-label{font-size:17px!important}
+  #settings-panel .settings-home .row-sub{font-size:13px!important;margin-top:1px}
+  #settings-panel .settings-home .pro-banner{border-radius:20px!important;padding:10px 12px 10px 16px!important;min-height:58px!important;margin:16px 0 0!important}
+  #settings-panel .settings-home .settings-list{margin-top:24px!important}
+  #settings-panel .settings-home .settings-tiles{margin-top:16px!important}
+
+  /* the live preview on 外观 / 锁屏: a framed screen, the card inset and scaled so nothing meets an edge */
+  #settings-panel .settings-preview{height:224px!important;margin:6px 16px 0!important;padding:18px 22px!important;border-radius:26px!important;align-items:center!important;justify-content:center!important;box-shadow:0 0 0 .5px color-mix(in srgb,var(--s-ink) 14%,transparent),0 18px 36px -24px #0007!important;position:relative!important;top:auto!important}
+  #settings-panel .settings-preview .mini-card{width:100%!important;max-width:330px;height:auto!important;max-height:196px!important;border-radius:20px!important;padding:14px 16px 12px!important;-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}
+  #settings-panel .settings-preview .mini-card.grouped{max-height:196px!important;overflow:hidden!important}
+  #settings-panel .settings-preview :is(.mini-foot,.mini-card-foot,.hero-foot){padding-left:2px!important;padding-right:2px!important}
+  #settings-panel .settings-preview .mini-wallpaper{border-radius:inherit}
+  #settings-panel .settings-preview .mini-shade{border-radius:inherit}
+}
+#settings-panel .settings-page fieldset .secondary-button.inline:not([hidden]) svg{display:block!important;flex:none;width:19px!important;height:19px!important;opacity:.85}
+/* a tap leaves no focus ring; the keyboard still gets one */
+:is(button,a,[role=button],summary):focus:not(:focus-visible){outline:none!important}
+
+/* ===================================================================================================
+   1.18 polish after the phone review (琉璃 theme, Android)
+   =================================================================================================== */
+@media(max-width:760px){
+  /* home: the capsule lines up with the content's right edge; 回顾 and 设置 say what they are */
+  .app-header{padding-left:22px!important;padding-right:22px!important}
+  #header-actions#header-actions{gap:0;padding:3px}
+  #header-actions#header-actions>#open-search{width:38px!important;height:38px!important}
+  #header-actions#header-actions>:is(#open-review,.nav-button[data-view=settings]){width:auto!important;height:38px!important;padding:0 14px!important;border-radius:999px!important;display:flex!important;align-items:center;gap:0;font:600 14px/1 var(--ui-face)!important;letter-spacing:.02em}
+  #header-actions#header-actions>:is(#open-review,.nav-button[data-view=settings]) svg{display:none!important}
+  #header-actions#header-actions>.nav-button[data-view=settings] span,#header-actions#header-actions>#open-review{font-size:14px!important}
+  #header-actions#header-actions>:is(#open-review,.nav-button[data-view=settings])+:is(#open-review,.nav-button[data-view=settings]){box-shadow:-1px 0 0 color-mix(in srgb,currentColor 14%,transparent)!important;border-radius:0 999px 999px 0!important}
+
+  /* the live preview: no box — the screen runs edge to edge and dissolves into the page, so nothing is cut */
+  #settings-panel .settings-preview{margin:0!important;border-radius:0!important;height:206px!important;padding:8px 30px 26px!important;box-shadow:none!important;-webkit-mask-image:linear-gradient(#000 64%,transparent 100%);mask-image:linear-gradient(#000 64%,transparent 100%)}
+  #settings-panel .settings-preview .mini-card{transform:scale(.9);transform-origin:50% 40%;-webkit-mask-image:none;mask-image:none;box-shadow:0 18px 40px -22px #0006!important}
+  #settings-panel .settings-scroll{-webkit-mask-image:linear-gradient(transparent 0,#000 22px);mask-image:linear-gradient(transparent 0,#000 22px)}
+  body[data-settings-page=index] #settings-panel .settings-scroll{-webkit-mask-image:none;mask-image:none}
+
+  /* tabs and the first section below them */
+  #settings-panel .look-tabs{margin:18px 0 0!important}
+  #settings-panel .settings-page .look-tabs+.look-section>fieldset:first-of-type{margin-top:52px!important}
+  /* a note that opens a card sits clear of the label above it */
+  #settings-panel .settings-page fieldset>legend+.setting-note{margin-top:16px!important}
+  #settings-panel .settings-page fieldset>.setting-note:first-child{margin-top:16px!important}
+
+  /* 界面风格: three small screens built the same way — a count and two rows — in each style's own material */
+  #settings-panel .style-chip .style-demo{position:relative;display:flex!important;flex-direction:column;justify-content:flex-end;gap:6px;height:84px!important;padding:12px!important;overflow:hidden;background-size:cover}
+  #settings-panel .style-chip .style-demo>*{position:static!important;transform:none!important;margin:0!important}
+  #settings-panel .style-chip .style-demo b{display:block;margin-bottom:auto!important;font:300 26px/1 Geist,sans-serif!important;letter-spacing:-.5px;width:auto!important;height:auto!important;background:none!important}
+  #settings-panel .style-chip .style-demo b em{font-style:normal;font-size:13px;opacity:.55;margin-left:2px}
+  #settings-panel .style-chip .style-demo i{display:block;width:100%!important;height:9px!important;border-radius:5px!important;flex:none}
+  #settings-panel .style-chip .style-demo i:last-child{width:68%!important}
+  #settings-panel .style-demo.glass{background:linear-gradient(150deg,#cfe3ef,#e9e4f3 55%,#f3e2d8)!important}
+  #settings-panel .style-demo.glass b{color:#1d2430!important}
+  #settings-panel .style-demo.glass i{background:#ffffffb3!important;box-shadow:0 0 0 .5px #ffffffd0}
+  #settings-panel .style-demo.paper{background:#f6f3ec!important}
+  #settings-panel .style-demo.paper b{color:#1d1d1f!important;font-family:"Noto Serif CJK SC",Georgia,serif!important;font-weight:400!important}
+  #settings-panel .style-demo.paper i{background:#1d1d1f1f!important}
+  #settings-panel .style-demo.night{background:#0b0b0d!important}
+  #settings-panel .style-demo.night b{color:#d6ff3d!important;font-weight:500!important}
+  #settings-panel .style-demo.night i{background:#ffffff1f!important}
+
+  /* 锁屏显示条数: a small card with three or four clear rows */
+  #settings-panel .segmented .density-demo{display:flex!important;flex-direction:column;justify-content:center;gap:7px;height:76px!important;padding:12px 16px!important;background:color-mix(in srgb,var(--s-ink) 7%,transparent)!important}
+  #settings-panel .segmented .density-demo.compact{gap:5px}
+  #settings-panel .segmented .density-demo i{position:relative;display:block!important;height:7px!important;width:auto!important;margin:0 0 0 16px!important;border-radius:4px!important;background:color-mix(in srgb,var(--s-ink) 26%,transparent)!important;border:0!important}
+  #settings-panel .segmented .density-demo i::before{content:"";position:absolute;left:-16px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;box-shadow:inset 0 0 0 1.4px color-mix(in srgb,var(--s-ink) 40%,transparent)}
+  #settings-panel .segmented .density-demo i:nth-child(2){width:72%!important}
+  #settings-panel .segmented .density-demo i:nth-child(3){width:84%!important}
+  #settings-panel .segmented .density-demo.compact i{height:6px!important}
+
+  /* 更多卡片设置: one card, no panel inside it, nothing running to its edges */
+  #settings-panel .more-appearance{padding:0 20px!important;border-radius:22px!important;margin-top:46px!important;overflow:hidden}
+  #settings-panel .more-appearance>summary{min-height:60px;padding:0!important;display:flex;align-items:center;gap:12px;font:500 16px/1.3 var(--ui-face)!important;list-style:none}
+  #settings-panel .more-appearance>summary svg:first-child{width:20px;height:20px;padding:6px;border-radius:9px;background:var(--s-tint);box-sizing:content-box}
+  #settings-panel .more-appearance>summary .summary-chevron{margin-left:auto;width:18px;height:18px;opacity:.5}
+  #settings-panel .more-appearance>:not(summary){background:none!important;box-shadow:none!important;border:0!important;margin-left:0!important;margin-right:0!important;padding-left:0!important;padding-right:0!important;border-radius:0!important;-webkit-mask-image:none!important;mask-image:none!important}
+  #settings-panel .more-appearance[open]>summary{border-bottom:1px solid var(--s-hair)}
+  #settings-panel .more-appearance :is(.ag,.ag-group,.more-body,.material-tiles,.swatches,.tone-row,.segmented){background:none!important;box-shadow:none!important;-webkit-mask-image:none!important;mask-image:none!important;overflow:visible!important}
+  #settings-panel .more-appearance .ag-title{display:block;margin:20px 0 12px!important;font-size:13px!important}
+}
+@media(max-width:760px){
+  #header-actions#header-actions>.nav-button[data-view=settings] span{display:inline!important;font-size:14px!important;color:inherit!important;position:static!important;width:auto!important;height:auto!important;clip:auto!important;overflow:visible!important;opacity:1!important}
+  #settings-panel .more-appearance>summary svg:first-child{color:var(--s-ink)!important;opacity:.8}
+}
+@media(max-width:760px){
+  /* both tabs open the same way: the first label sits 36px under the tab bar */
+  #settings-panel .settings-page .look-tabs~.look-section>fieldset:first-of-type{margin-top:63px!important}
+}
+@media(max-width:760px){
+  /* 配色: one even row whether there are five or six colours (夜光 adds 荧光) */
+  #settings-panel .accent-settings .swatches{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(36px,1fr));justify-items:center;gap:0 6px!important;padding:4px 0 24px!important}
+}
+/* dark looks: dark colour choices keep a quiet edge so they don't sink into the card */
+:is(html[data-style=night],html[data-pro-skin=night]) #settings-panel :is(.theme-chip>span,.color-row>button,.swatch:not(:has(input:checked))):not(:focus-visible){outline:1px solid #ffffff2e;outline-offset:-1px}
+
+/* ===================================================================================================
+   1.19 — 外观 = pick a theme, then fine-tune. Type scale: 13 / 15 / 17 / 30.
+   =================================================================================================== */
+#settings-panel{--t-cap:13px;--t-sec:15px;--t-body:17px;--t-big:30px}
+@media(max-width:760px){
+  /* the preview is the lock card, so it shows where the lock card is set: not above the theme gallery */
+  .settings-panel:has(.settings-page[data-page=look]:not([hidden])[data-tab=app]) .settings-preview{display:none!important}
+  .settings-panel:has(.settings-page[data-page=look]:not([hidden])[data-tab=app]) .settings-scroll{-webkit-mask-image:none!important;mask-image:none!important}
+
+  /* 主题: a full-width gallery of real home screens */
+  #settings-panel .settings-page fieldset.ui-styles{background:none!important;box-shadow:none!important;border:0!important;padding:0!important;margin-left:-16px!important;margin-right:-16px!important;border-radius:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  #settings-panel .settings-page fieldset.ui-styles>legend{left:36px!important;right:auto!important;width:auto!important;max-width:calc(100% - 72px)!important}
+  #settings-panel .theme-rail{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:6px 36px 4px;scroll-padding-inline:36px;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  #settings-panel .theme-rail::-webkit-scrollbar{display:none}
+  #settings-panel .theme-card{all:unset;position:relative;flex:none;width:96px;display:flex;flex-direction:column;align-items:flex-start;gap:0;scroll-snap-align:start;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #settings-panel .theme-card .theme-shot{display:block;width:96px;height:208px;border-radius:17px;overflow:hidden;background:var(--s-tint);box-shadow:0 0 0 .5px color-mix(in srgb,var(--s-ink) 16%,transparent),0 12px 24px -16px #0007;transition:box-shadow .2s ease,transform .2s ease}
+  #settings-panel .theme-card .theme-shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+  #settings-panel .theme-card strong{display:block;margin-top:14px!important;font:600 var(--t-sec)/1.25 var(--ui-face)!important;color:var(--s-ink)!important;letter-spacing:0}
+  #settings-panel .theme-card small{display:block;margin-top:3px;font:400 var(--t-cap)/1.3 var(--ui-face)!important;color:var(--s-muted)!important}
+  #settings-panel .theme-card.active .theme-shot{box-shadow:0 0 0 2.5px var(--s-page,#f2f2f4),0 0 0 4.5px var(--s-ink),0 14px 26px -16px #0008}
+  #settings-panel .theme-card.active small{color:var(--s-ink)!important;font-weight:500!important}
+  #settings-panel .theme-card::before,#settings-panel .theme-card::after{display:none!important}
+  #settings-panel .theme-card .pro-lock-badge{position:absolute!important;top:8px!important;right:8px!important;left:auto!important;bottom:auto!important;width:24px!important;height:24px!important;border-radius:50%!important;display:grid!important;place-items:center;background:#0000004d!important;color:#fff!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  #settings-panel .theme-card .pro-lock-badge svg{width:13px!important;height:13px!important}
+  #settings-panel .theme-about{margin:16px 36px 0;font:400 var(--t-sec)/1.55 var(--ui-face);color:var(--s-muted);text-wrap:pretty}
+  #settings-panel .theme-about b{color:var(--s-ink);font-weight:600;margin-right:8px}
+  #settings-panel .theme-about:empty{display:none}
+  #settings-panel .settings-page fieldset#pro-look{margin-top:22px!important}
+  #settings-panel .settings-page fieldset#pro-look>legend{display:none}
+  /* a Pro theme brings its own colours, so 配色 steps aside instead of explaining itself */
+  html[data-pro-skin] #settings-panel .accent-settings{display:none!important}
+
+  /* 锁屏卡片: one card — presets, and 自己调 folded underneath */
+  #settings-panel .card-styles .more-appearance{margin:6px 0 0!important;padding:0!important;background:none!important;box-shadow:none!important;border:0!important;border-top:1px solid var(--s-hair)!important;border-radius:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow:visible!important}
+  #settings-panel .card-styles .more-appearance>summary{min-height:64px!important;display:flex!important;align-items:center;gap:14px;padding:0!important;border:0!important}
+  #settings-panel .card-styles .more-appearance[open]>summary{border-bottom:1px solid var(--s-hair)!important}
+  #settings-panel .custom-dot{flex:none;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 1px #0000001f;position:relative}
+  #settings-panel .custom-dot::after{content:"";position:absolute;inset:-5px;border-radius:50%;box-shadow:0 0 0 1.5px var(--s-hair);background:conic-gradient(from 0deg,#ff6b6b,#ffd166,#06d6a0,#4cc9f0,#7b61ff,#ff6b6b);-webkit-mask:radial-gradient(circle,transparent 18.5px,#000 19px);mask:radial-gradient(circle,transparent 18.5px,#000 19px);opacity:.9}
+  #settings-panel .more-appearance.is-custom .custom-dot::after{background:var(--s-ink);opacity:1}
+  #settings-panel .summary-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+  #settings-panel .summary-text b{font:500 var(--t-body)/1.25 var(--ui-face);color:var(--s-ink)}
+  #settings-panel .summary-text small{font:400 var(--t-cap)/1.3 var(--ui-face);color:var(--s-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #settings-panel .card-styles .more-appearance>summary .summary-chevron{margin-left:auto!important}
+  #settings-panel .card-styles .more-appearance .ag{padding:0 0 6px!important;border:0!important}
+  #settings-panel .card-styles .more-appearance .ag-title{margin:22px 0 12px!important}
+  #settings-panel .card-styles .color-row{display:flex;align-items:center;gap:14px}
+  #settings-panel .card-styles .color-row output{font:500 var(--t-sec)/1 Geist,var(--ui-face)!important;color:var(--s-ink)!important;letter-spacing:.02em;margin:0!important}
+  #settings-panel .card-styles .reset-row{margin:18px 0 10px!important}
+  #settings-panel .card-styles .theme-presets{padding-top:16px!important;padding-bottom:12px!important}
+
+  /* type scale: captions 13, secondary 15, body 17, large titles 30 — nothing smaller than 13 in settings */
+  #settings-panel :is(.section-hint,.setting-note,.row-sub,.fx-hint,.ag-switch small,.font-chip,.wallpaper-choice span,.theme-chip,.swatch span,.mat-demo+.mat-name+small,[data-material] small,.segmented button,.pill-segment button,.pro-wall-row small){font-size:var(--t-cap)!important}
+  #settings-panel .settings-page legend{font-size:var(--t-cap)!important;font-weight:500!important}
+  #settings-panel :is(.row-value,.look-tabs button,.secondary-button,.mat-name,.ag-title,.ag-row output,.setting-row output,.chip,.reset-row,.wallpaper-upload span){font-size:var(--t-sec)!important}
+  #settings-panel :is(.row-label,.ag-switch strong,.setting-row>span,.settings-top h1:not(#settings-title)){font-size:var(--t-body)!important}
+  #settings-panel .row-label{font-weight:500!important}
+  #settings-panel .row-label>.row-sub{font-size:var(--t-cap)!important;font-weight:400!important}
+  #settings-panel .font-chip .font-sample{font-size:var(--t-body)!important}
+}
+@media(max-width:760px){
+  #settings-panel #pro-look .pro-wall-row{margin-top:0!important;padding:16px 0!important;border-top:0!important}
+}
+@media(max-width:760px){
+  #settings-panel :is(.pro-banner-state,.pro-banner-text small,.links-row a,.links-row,#backup-state small,.home-card-note,.hero-note){font-size:var(--t-cap)!important}
+  #settings-panel .pro-banner-text b{font-size:var(--t-body)!important;font-weight:600!important}
+  #settings-panel .ag-row .ag-title,#settings-panel .motion-settings .ag-title{font-size:var(--t-body)!important;font-weight:500!important}
+  #settings-panel .secondary-button.inline{font-size:var(--t-body)!important}
+  #settings-panel #backup-state b{font-size:var(--t-body)!important;font-weight:600!important}
+  #settings-panel :is(.group-name,.group-head strong,.group-head .group-title){font-size:var(--t-body)!important}
+  /* home chrome follows the same scale */
+  .app-header .header-date,.app-header #header-date{font-size:var(--t-sec,15px)}
+  #header-actions#header-actions>:is(#open-review,.nav-button[data-view=settings]),#header-actions#header-actions>.nav-button[data-view=settings] span{font-size:15px!important}
+}
+@media(max-width:760px){
+  #settings-panel .backup-head small{font-size:var(--t-cap)!important;line-height:1.5}
+  #settings-panel .backup-head b{font-size:var(--t-body)!important}
+  .app-header .header-date{font-size:15px!important}
+  .first-run p{font-size:15px!important;line-height:1.55!important}
+  #filter-tabs button{font-size:15px!important}
+}
+@media(max-width:760px){
+  /* Android draws the lock list as separate group cards on the wallpaper: no box around them in the preview, and the list simply fades out */
+  #settings-panel .settings-preview .mini-card.grouped{background:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:0!important;padding:6px 2px 0!important;-webkit-mask-image:linear-gradient(#000 78%,transparent)!important;mask-image:linear-gradient(#000 78%,transparent)!important}
+  #settings-panel .settings-preview .mini-card.grouped::before,#settings-panel .settings-preview .mini-card.grouped::after{display:none!important}
+  #settings-panel .settings-preview .mini-card.grouped .mini-footer{display:none!important}
+}
+
+/* 1.19 add sheet: five settings in one even row — nothing runs off the edge */
+@media(max-width:760px){
+  .add-form .add-pills{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px!important;overflow:visible!important;margin:12px 0 2px!important;padding:0!important}
+  .add-form .add-pill{min-width:0;width:100%;height:40px!important;padding:0 6px!important;justify-content:center;gap:5px!important;border-radius:12px!important;font-size:13px!important}
+  .add-form .add-pill>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .add-form .add-pill svg{flex:none;width:15px!important;height:15px!important}
+  /* option chips wrap onto a second line instead of hiding off-screen */
+  :is(.add-form,#edit-form) .chip-row{flex-wrap:wrap!important;overflow:visible!important;row-gap:8px!important}
+}
+@media(max-width:760px){
+  /* once a pill holds a value, the value is the label: drop the icon so 15:00 and ● 工作 fit */
+  .add-form .add-pill.is-set svg{display:none!important}
+  .add-form .add-pill.is-set{padding:0 4px!important}
+}
+@media(max-width:760px){ .add-form .add-pill[data-add-panel=group] svg{display:none!important} }
+
+/* 1.19 accessibility pass: every tap target at least 40px, every caption at least 4.5:1 */
+@media(max-width:760px){
+  #filter-tabs button{height:40px!important}
+  #filter-tabs button>span:last-child{opacity:1!important;color:color-mix(in srgb,currentColor 72%,transparent)!important}
+  #settings-panel .look-tabs button,.review-period button{min-height:40px!important}
+  #tips-close{width:44px!important;height:44px!important}
+  .add-form .add-submit{width:40px!important;height:40px!important}
+  #open-search{width:40px!important;height:40px!important}
+  .review-groups .chip{min-height:38px!important}
+  .review-stats b small{opacity:.72!important}
+}
+#backup-state.is-old{color:#a95500}
+@media(prefers-color-scheme:dark){#backup-state.is-old{color:#ffb35c}}
+html[data-style=night] #backup-state.is-old{color:#ffb35c}
+@media(max-width:760px){
+  #edit-sheet .sheet-head .primary-button,#edit-form .primary-button{min-height:40px!important;padding-left:18px!important;padding-right:18px!important}
+  .review-groups .chip{min-height:40px!important}
+}
+/* 1.20: the 外观 page is long; parts below the screen are laid out and painted only when they scroll into view */
+#settings-panel .settings-page[data-page=look] fieldset:not(.ui-styles)>:not(legend):not(.more-appearance){content-visibility:auto;contain-intrinsic-size:auto 96px}
+/* the add bar belongs to the list: it never sits on top of the Pro page or the checkout (it covered the buy buttons) */
+html body.pro-open #fab-add#fab-add#fab-add,html body.pro-paying #fab-add#fab-add#fab-add{display:none!important}
+
+/* 1.22 穿模: the font tile's check sat on top of 「Aa 碎碎」 — it now sits on the tile's corner, outside the sample text */
+#settings-panel .font-chip{position:relative}
+#settings-panel .font-chip::before{top:-6px!important;right:-6px!important}
+/* 1.22 iPad portrait: the list column is narrower than a phone's add sheet, so the option pills wrap instead of hiding past the edge */
+@media(min-width:761px){.add-form .add-pills{flex-wrap:wrap;overflow:visible}}
+#task-input{text-overflow:ellipsis}
+/* 1.22 iPad portrait: the settings column is narrow, a setting's title can take two lines — the row grows instead of
+   spilling onto the note under it (it had a fixed 50px height on wide screens) */
+#settings-panel .settings-page .setting-row{height:auto!important}
+@media(min-width:761px){#settings-panel .settings-page .setting-row{padding-block:12px}
+  #settings-panel .settings-page .setting-row>span:first-child{flex:1;min-width:0;line-height:1.4}}
+/* 1.22 add sheet: 「+ 新建分组」 sits after the groups; tapping it turns into a small name field in place */
+#add-group-chips .chip-new-group{border:1px dashed color-mix(in srgb,currentColor 35%,transparent)!important;background:transparent!important;box-shadow:none!important;color:var(--muted);gap:4px}
+#add-group-chips .chip-new-group svg{width:14px;height:14px}
+#add-group-chips .chip-new-group.is-editing{border-style:solid!important;border-color:var(--accent,currentColor)!important;color:inherit;padding-block:0}
+#add-group-chips .chip-new-group input{all:unset;width:6.5em;min-height:32px;font:inherit;color:inherit;caret-color:var(--accent,currentColor)}
+#add-group-chips .chip-new-group input::placeholder{color:var(--muted)}
