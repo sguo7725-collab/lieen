@@ -11,7 +11,10 @@ android {
         applicationId = "io.github.lieen111.suisui"
         minSdk = 26
         targetSdk = 35
-        versionCode = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
+        // 1.22: minutes since 1970 instead of the CI run number. The run number restarts at 1 in a new repository
+        // (the build moved to another GitHub account), which Android treats as a downgrade (install error -25).
+        // Minutes always grow, stay far above any old run number, and fit Android's 2,100,000,000 limit for ~4000 years.
+        versionCode = (System.currentTimeMillis() / 60000L).toInt()
         versionName = "1.22.0"
     }
 
