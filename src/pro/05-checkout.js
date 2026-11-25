@@ -17,7 +17,7 @@
       el.addEventListener('pointermove', e => { if (y0 == null) return; const d = Math.max(0, e.clientY - y0); el.querySelector('.pro-pay-card').style.transform = `translateY(${d}px)`; });
       const end = e => { if (y0 == null) return; const card = el.querySelector('.pro-pay-card'), d = e.clientY - y0; y0 = null; card.style.transition = ''; card.style.transform = ''; if (d > 70) closePay(); };
       el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end); }
-    payStep = LIVE && step === 'start' && info().order && !info().owned ? 'waiting' : step; payNote = ''; el.hidden = false; renderPay(); document.body.classList.add('pro-paying');
+    payStep = LIVE && step === 'start' && info().order && !owns() ? 'waiting' : step; payNote = ''; el.hidden = false; renderPay(); document.body.classList.add('pro-paying');
     requestAnimationFrame(() => el.querySelector('.pro-pay-card')?.focus());
   }
   function closePay() { const el = $('pro-pay'); if (el) el.hidden = true; document.body.classList.remove('pro-paying'); clearTimeout(pollTimer); }
@@ -25,7 +25,9 @@
   const ios = () => payPlatform() === 'ios';
   function renderPay() {
     const el = $('pro-pay'); if (!el) return;
-    if (!ios()) return renderLive(el); // Android and web: the real checkout (simulated in test builds); iPhone: App Store
+    // Android, web and the sideloaded iPhone build all buy through the Pro server. The App Store sheet below is only a
+    // test-build mock-up for a future App Store release (Apple requires in-app purchase there).
+    if (!ios() || !TESTING) return renderLive(el);
     const kind = ios() ? 'ios' : 'code', working = payStep === 'working';
     const head = `<span class="pro-pay-grab" aria-hidden="true"></span><header class="pro-pay-head"><h2 id="pro-pay-title">${payStep === 'done' ? 'Pro 已解锁' : '碎碎清单 Pro'}</h2>${working ? '' : '<button type="button" class="pro-pay-x" id="pro-pay-close" aria-label="关闭">' + icon('x') + '</button>'}</header>`;
     let body = '';
@@ -75,6 +77,15 @@
 
   /** The real checkout (release builds, Android and web). Steps: start → qr → waiting, or start → afdian, then done. */
   function renderLive(el) {
+    if (CLOSED) { // no Pro server in this build yet: nothing to buy, no code to check
+      el.innerHTML = `<div class="pro-pay-card" tabindex="-1"><span class="pro-pay-grab" aria-hidden="true"></span><header class="pro-pay-head"><h2 id="pro-pay-title">Pro 即将开放</h2><button type="button" class="pro-pay-x" id="pro-pay-close" aria-label="关闭">${icon('x')}</button></header>
+        <div class="pro-pay-closed"><p>Pro 的购买和兑换码还没有开放，开放后在这里开通。</p><p class="pro-pay-fine">开放后每台手机都要单独开通：购买一次，或用兑换码。安装包转给别人不会带上你的 Pro。</p>
+        ${info().trialUsed ? '' : `<button type="button" class="pro-cta" id="pro-pay-trial">先免费试用 ${TRIAL_DAYS} 天</button>`}</div></div>`;
+      API.icons(el);
+      $('pro-pay-close')?.addEventListener('click', closePay);
+      $('pro-pay-trial')?.addEventListener('click', () => { closePay(); startTrial(); });
+      return;
+    }
     const st = payStep, cfg = shop, o = info().order;
     const titles = { start: '开通 Pro', qr: '扫码付款', waiting: '等待确认', afdian: '填写爱发电订单号', working: '开通 Pro', done: 'Pro 已开通' };
     const head = `<span class="pro-pay-grab" aria-hidden="true"></span><header class="pro-pay-head"><h2 id="pro-pay-title">${titles[st] || '开通 Pro'}</h2>${st === 'working' ? '' : '<button type="button" class="pro-pay-x" id="pro-pay-close" aria-label="关闭">' + icon('x') + '</button>'}</header>`;

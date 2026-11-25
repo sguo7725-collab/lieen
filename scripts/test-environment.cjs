@@ -13,8 +13,9 @@ const chromium = {
       const { demo = true, lookTabs = false, proFree = false, ...rest } = opts;
       const ctx = await newContext(rest);
       if (demo) await ctx.addInitScript(demoScript);
-      // app/pro-config.js makes test builds free; the checks expect the paid behaviour unless they ask for { proFree: true }.
-      await ctx.addInitScript(free => { window.SUISUI_PRO_CONFIG = { freeForTesters: free }; }, proFree);
+      // Pro mode for tests: { proFree: true } = everything unlocked; default = locked with a simulated checkout
+      // (`simulate`, test builds only). Shipped builds are 未开放 (no server) or 正式版 (server + key) — see app/pro-config.js.
+      await ctx.addInitScript(free => { window.SUISUI_PRO_CONFIG = window.SUISUI_PRO_CONFIG || { freeForTesters: free, simulate: true }; }, proFree);
       // 1.16 外观 has App / 锁屏卡片 tabs. Older checks reach controls on both halves directly, so they see both
       // at once; pass { lookTabs: true } to test the tabs themselves (verify-v19 does).
       if (!lookTabs) await ctx.addInitScript(() => { window.SUISUI_LOOK_ALL = true; });

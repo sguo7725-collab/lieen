@@ -26,7 +26,8 @@ const SUITES = [
   ['v118', 'verify-v118.cjs'],
   ['layout', 'verify-layout.cjs'],            // every look × screen fits, contrast
   ['pro', 'verify-pro.cjs'],                  // themes, effects, jar, weekly art, countdown, clear moment
-  ['pay', 'verify-pay.cjs'],                  // checkout against a local order server
+  ['pay', 'verify-pay.cjs'],                  // checkout against a local order server; Pro stays with the phone that paid
+  ['entitlement', 'verify-entitlement.cjs'],  // shipped build (no server): no free Pro, no fake codes
   ['server', 'verify-server.cjs'],            // order / licence server
   ['ios-bridge', 'verify-ios-bridge.cjs'],    // the iPhone shell's bridge script
   ['android-bridge', 'verify-android-bridge.cjs'],

@@ -2,7 +2,7 @@
   function refreshAll() {
     if (API.lockMode) { renderCountdowns(); return; } // the lock view has no settings, banner or Pro sheet to fill
     renderLookInline(); renderCountdowns(); drawMiniJar(false);
-    const st = $('pro-banner-state'); if (st) st.textContent = isPro() ? (info().owned || FREE ? '已开通' : `试用 ${trialLeft()} 天`) : PRICE;
+    const st = $('pro-banner-state'); if (st) st.textContent = isPro() ? (owns() || FREE ? '已开通' : `试用 ${trialLeft()} 天`) : PRICE;
     const sub = document.querySelector('#pro-banner .pro-banner-text small'); if (sub) sub.textContent = isPro() && themeLabel() ? `正在用「${themeLabel()}」` : isPro() ? '主题、碎片罐、动效都已打开' : '主题、碎片罐、完成动效';
     const bj = $('pro-banner-jar'); if (bj) { const ctx = canvasFor(bj, 24, 30); drawJarWith(BRAND, ctx, 2, 1, 20, 28, demoEntries(startOfDay(), 6), 0); }
     if (!$('pro-sheet').hidden) { const top = $('pro-sheet').scrollTop; renderSheet(); $('pro-sheet').scrollTop = top; startHero(); }
@@ -25,7 +25,7 @@
   mount();
   applyTheme(); refreshAll();
   // release builds: check the licence, finish an order confirmed while the app was closed
-  if (LIVE && !API.lockMode) { liveBoot(); document.addEventListener('visibilitychange', () => { if (!document.hidden && info().order && !info().owned) pollOrder().then(st => { if (st === 'paid') API.showToast('付款已确认，Pro 已开通。谢谢支持！'); }); }); }
+  if (LIVE && !API.lockMode) { liveBoot(); document.addEventListener('visibilitychange', () => { if (!document.hidden && info().order && !owns()) pollOrder().then(st => { if (st === 'paid') API.showToast('付款已确认，Pro 已开通。谢谢支持！'); }); }); }
   // In the effect frame, the first thing gets done and comes back, over and over, so the theme's finishing can be watched
   if (SHOW && SHOW_VIEW === 'fx') {
     const cycle = () => {

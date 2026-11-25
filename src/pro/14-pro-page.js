@@ -8,7 +8,7 @@
   }
   function closeSheet() { const s = $('pro-sheet'); if (s.hidden) return; s.hidden = true; document.body.classList.remove('pro-open'); stopHero(); }
   function renderSheet() {
-    const s = $('pro-sheet'), pro = isPro(), owned = info().owned, cur = activeTheme(), curE = S().proEffect || 'auto';
+    const s = $('pro-sheet'), pro = isPro(), owned = owns(), cur = activeTheme(), curE = S().proEffect || 'auto';
     s.innerHTML = `
       <header class="pro-hero">
         <button type="button" class="pro-close" id="pro-close" aria-label="关闭">${icon('x')}</button>
@@ -66,8 +66,8 @@
       <footer class="pro-buy" data-pay="${payPlatform()}">
         ${owned ? `<p class="pro-owned">${icon('badge-check')}Pro 已开通，感谢支持。${info().code ? `<small>兑换码 ${esc(info().code)} · 可在其他设备上开通</small>` : info().via === 'appstore' ? '<small>通过 App Store 购买</small>' : info().via ? '<small>兑换码开通</small>' : ''}</p>`
           : `<div class="pro-price"><b>${priceText()}</b>${listText() ? `<s>${listText()}</s>` : ''}<span>${LIVE && shop ? esc(shop.priceNote || '') + (shop.priceNote ? ' · ' : '') : PRICE_NOTE + ' · '}一次购买 · 永久使用 · 无订阅</span></div>
-             <div class="pro-actions">${info().trialUsed || FREE ? '' : `<button type="button" class="pro-trial" id="pro-trial">免费试用 ${TRIAL_DAYS} 天</button>`}<button type="button" class="pro-cta" id="pro-buy">${payPlatform() === 'ios' ? `购买 · ${PRICE}` : `开通 Pro · ${priceText()}`}</button></div>`}
-        <p class="pro-legal">${owned ? '<span></span>' : payPlatform() === 'ios' ? '<button type="button" id="pro-restore">恢复购买</button>' : '<button type="button" id="pro-have-code">已有兑换码</button>'}<a href="terms.html" target="_blank" rel="noopener">购买须知</a><a href="privacy.html" target="_blank" rel="noopener">隐私政策</a></p>
+             <div class="pro-actions">${info().trialUsed || FREE ? '' : `<button type="button" class="pro-trial" id="pro-trial">免费试用 ${TRIAL_DAYS} 天</button>`}<button type="button" class="pro-cta" id="pro-buy">${payPlatform() === 'ios' && TESTING ? `购买 · ${PRICE}` : `开通 Pro · ${priceText()}`}</button></div>`}
+        <p class="pro-legal">${owned ? '<span></span>' : payPlatform() === 'ios' && TESTING ? '<button type="button" id="pro-restore">恢复购买</button>' : '<button type="button" id="pro-have-code">已有兑换码</button>'}<a href="terms.html" target="_blank" rel="noopener">购买须知</a><a href="privacy.html" target="_blank" rel="noopener">隐私政策</a></p>
       </footer>`;
     API.icons(s);
     $('pro-close').addEventListener('click', closeSheet);

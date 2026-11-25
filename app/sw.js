@@ -2,7 +2,7 @@
 
 // VERSION is stamped by scripts/build-web.cjs from the contents of every other file in app/: it changes
 // exactly when a cached file changes, which keeps each installed shell coherent. Do not edit it by hand.
-const VERSION = 'web-c4531bb24225';
+const VERSION = 'web-9c4eb0ac12b4';
 const PREFIX = `suisui-pwa-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = PREFIX + VERSION;
 const SHELL = [

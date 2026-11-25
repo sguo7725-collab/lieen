@@ -45,6 +45,15 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/build-web.cjs --check
 
+      - name: Pro server for this build
+        # Repository variables PRO_SERVER + PRO_PUBLIC_KEY (the admin page's public key) make a release build where each
+        # phone needs its own licence. Without them Pro is 未开放 (nothing unlocks it). No build is free for everyone.
+        working-directory: ${{ github.workspace }}
+        env:
+          PRO_SERVER: ${{ vars.PRO_SERVER }}
+          PRO_PUBLIC_KEY: ${{ vars.PRO_PUBLIC_KEY }}
+        run: node scripts/write-pro-config.cjs
+
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:

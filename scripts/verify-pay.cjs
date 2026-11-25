@@ -54,6 +54,29 @@ const data = fs.mkdtempSync(path.join(os.tmpdir(), 'suisui-pay-'));
     await A.page.reload({ waitUntil: 'networkidle' }); await A.page.waitForTimeout(400);
     assert.equal(await isPro(A.page), true, 'Pro survives a restart (licence verified on the device)');
 
+    // ---- 1.22 (user's rule): Pro belongs to the phone that paid, not to the install package or the data.
+    // phone 'copied' installs the same package and even gets ALL of A's stored data (as if copied over): still no Pro
+    const aData = await A.page.evaluate(() => localStorage.getItem('suisui-locktodo-v1'));
+    const copied = await device();
+    await copied.page.evaluate(d => localStorage.setItem('suisui-locktodo-v1', d), aData);
+    await copied.page.reload({ waitUntil: 'networkidle' }); await copied.page.waitForTimeout(600);
+    assert.notEqual(await copied.page.evaluate(() => localStorage.getItem('suisui-device')), await A.page.evaluate(() => localStorage.getItem('suisui-device')), 'each install has its own device id');
+    assert.equal(await isPro(copied.page), false, "A's licence copied to another phone does not unlock Pro there");
+    // …and importing A's backup on a fresh phone brings the tasks, not the Pro
+    const fresh = await device();
+    const backup = JSON.parse(aData); backup.app = 'suisui'; backup.version = 2;
+    await fresh.page.setInputFiles('#import-file', { name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
+    await fresh.page.locator('#import-replace').waitFor();
+    await fresh.page.evaluate(() => { const c = document.querySelector('#import-settings'); if (!c.checked) c.click(); });
+    await fresh.page.locator('#import-replace').click(); await fresh.page.waitForTimeout(500);
+    assert.equal(await fresh.page.evaluate(() => JSON.parse(localStorage.getItem('suisui-locktodo-v1')).tasks.length), JSON.parse(aData).tasks.length, 'the backup was imported (tasks came along)');
+    assert.equal(await isPro(fresh.page), false, "importing A's backup does not unlock Pro");
+    assert.equal(await fresh.page.evaluate(() => !!JSON.parse(localStorage.getItem('suisui-locktodo-v1') || '{}').settings?.pro?.licence), false, 'the imported backup did not bring a licence along');
+    // a test-only offline code (the old preview checksum) is refused in a release build
+    assert.equal(await fresh.page.evaluate(() => window.SuiSuiPro.redeem(window.SuiSuiPro.demoCode)), false, 'the preview demo code does nothing in a release build');
+    assert.equal(await isPro(fresh.page), false);
+    await copied.ctx.close(); await fresh.ctx.close();
+
     // a forged licence (tampered body) is refused at start
     await A.page.evaluate(() => { const raw = JSON.parse(localStorage.getItem('suisui-locktodo-v1')); const [b, s] = raw.settings.pro.licence.split('.'); const body = JSON.parse(atob(b.replace(/-/g, '+').replace(/_/g, '/'))); body.dev = 'someone-else'; raw.settings.pro.licence = btoa(JSON.stringify(body)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_') + '.' + s; localStorage.setItem('suisui-locktodo-v1', JSON.stringify(raw)); });
     await A.page.reload({ waitUntil: 'networkidle' }); await A.page.waitForTimeout(600);

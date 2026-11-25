@@ -11,7 +11,9 @@
   /** Preview-only check (a checksum). The real build asks the code server instead. */
   const codeOk = v => { const b = normCode(v); return b.length === 12 && [...b].every(ch => CODE_ABC.includes(ch)) && codeSum(b.slice(0, 10)) === b.slice(10); };
   const demoCode = (() => { const b = 'SUPRWEEK26'; const full = b + codeSum(b); return `SUISUI-${full.slice(0, 4)}-${full.slice(4, 8)}-${full.slice(8)}`; })();
+  /** Offline code check — test builds only. Real codes are checked by the server (the checkout's code step). */
   function redeem(value) {
+    if (!TESTING) { API.showToast(CLOSED ? 'Pro 还没开放购买，敬请期待。' : '请在开通页里输入兑换码'); return false; }
     if (!codeOk(value)) { API.showToast('兑换码不对，检查一下有没有输错'); return false; }
     info().via = 'code'; info().code = normCode(value); buy(); return true;
   }

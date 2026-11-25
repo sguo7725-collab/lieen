@@ -5,8 +5,15 @@
                   it in the admin page; the app (polling while the sheet is open, and on every start) gets the licence.
        爱发电   — the buyer pays on afdian and pastes the order number; the server checks it with afdian.
        兑换码   — any code you made; one code works on up to N devices (set in the admin page). */
+  /** Cheap check, no crypto: the licence names this device. The signature itself is checked by readLicence(). */
+  function licenceForThisDevice(lic) {
+    // (its own base64url decode: this runs at start-up, before the helpers further down exist)
+    try { const body = String(lic || '').split('.')[0]; if (!body) return false; const bin = atob(body.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(body.length / 4) * 4, '='));
+      const p = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0)))); return !!p.dev && p.dev === localStorage.getItem('suisui-device'); } catch { return false; }
+  }
   const deviceId = () => { try { let d = localStorage.getItem('suisui-device'); if (!d) { d = (crypto.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`).replace(/[^\w-]/g, ''); localStorage.setItem('suisui-device', d); } return d; } catch { return 'nostore'; } };
-  /* Test builds have no server: the same checkout runs against this stand-in, so it can be tried without paying. */
+  /* Test builds have no server: the same checkout runs against this stand-in, so it can be tried without paying.
+     Only test builds: a build with no server refuses every purchase and code (see CLOSED). */
   let simMode = 'qr', simPaidAt = 0, simOrder = '';
   const randAbc = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), x => CODE_ABC[x & 31]).join('');
   const simCode = () => `SUISUI-${randAbc(4)}-${randAbc(4)}-${randAbc(4)}`;
@@ -21,7 +28,8 @@
     return no('http', '服务器暂时不可用，请稍后再试。');
   }
   async function shopCall(path, body) {
-    if (!LIVE) return simCall(path, body);
+    if (TESTING) return simCall(path, body);
+    if (!LIVE) throw Object.assign(new Error('Pro 还没开放购买，敬请期待。'), { code: 'closed' });
     let r;
     try { r = await fetch(SERVER + path, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ device: deviceId(), platform: API.platform, version: document.querySelector('meta[name=app-version]')?.content || '', ...body }) } : {}); }
     catch { throw Object.assign(new Error('连不上服务器。检查网络后再试一次。'), { code: 'offline' }); }
@@ -42,7 +50,8 @@
     } catch { return null; }
   }
   async function takeLicence(res, via) {
-    if (!LIVE) { const i = info(); Object.assign(i, { owned: true, via, code: res.code || '' }); delete i.order; buy(); return; }
+    if (TESTING) { const i = info(); Object.assign(i, { owned: true, via, code: res.code || '' }); delete i.order; buy(); return; }
+    if (!LIVE) throw Object.assign(new Error('Pro 还没开放购买，敬请期待。'), { code: 'closed' });
     const p = await readLicence(res.licence);
     if (!p) throw Object.assign(new Error('开通凭证没有通过校验。请联系我们处理。'), { code: 'licence' });
     const i = info(); Object.assign(i, { owned: true, via, licence: res.licence, lid: p.lid, code: res.code || i.code || '', checkedAt: Date.now() }); delete i.order;
@@ -67,8 +76,8 @@
   async function liveBoot() {
     if (!LIVE) return;
     const i = info();
-    if (i.owned && i.licence && !(await readLicence(i.licence))) { Object.assign(i, { owned: false }); delete i.licence; persist(); endTry(false); applyTheme(); refreshAll(); }
-    if (i.order && !i.owned) { const st = await pollOrder(); if (st === 'paid') API.showToast('付款已确认，Pro 已开通。谢谢支持！'); }
+    if (i.owned && !(await readLicence(i.licence))) { Object.assign(i, { owned: false }); delete i.licence; persist(); endTry(false); applyTheme(); refreshAll(); }
+    if (i.order && !owns()) { const st = await pollOrder(); if (st === 'paid') API.showToast('付款已确认，Pro 已开通。谢谢支持！'); }
     if (i.owned && i.lid && Date.now() - (i.checkedAt || 0) > 3 * 864e5) {
       try { const r = await shopCall('/api/check', { lid: i.lid }); i.checkedAt = Date.now();
         if (r.ok === false) { i.owned = false; delete i.licence; persist(); endTry(false); applyTheme(); refreshAll(); API.showToast('这台设备的 Pro 已被撤销（订单退款或设备解绑）'); } else persist();

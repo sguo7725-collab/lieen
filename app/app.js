@@ -1270,7 +1270,9 @@
       const seen = new Set(state.log.map(e => `${e.id}@${e.at}`));
       state.log = normalizeLog([...state.log, ...pendingImport.log.filter(e => !seen.has(`${e.id}@${e.at}`))]);
     }
-    if ($('import-settings').checked && pendingImport.settings) state.settings = cleanSettings({ ...pendingImport.settings, photo: state.settings.photo, wallpaper: pendingImport.settings.wallpaper === 'custom' ? state.settings.wallpaper : pendingImport.settings.wallpaper });
+    // Pro stays with this device: a backup (someone else's, or this phone's from before) never brings an unlock,
+    // trial or pending order along — those come only from buying or redeeming here.
+    if ($('import-settings').checked && pendingImport.settings) state.settings = cleanSettings({ ...pendingImport.settings, photo: state.settings.photo, wallpaper: pendingImport.settings.wallpaper === 'custom' ? state.settings.wallpaper : pendingImport.settings.wallpaper, pro: state.settings.pro });
     pendingImport = null; filter = 'all'; closeEdit();
     $('import-dialog').close();
     save(); render(); applySettings();
