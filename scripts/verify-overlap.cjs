@@ -7,11 +7,9 @@
 //        SIZES=phone,ipad,ipad-land LOOKS=glass,dawn node scripts/verify-overlap.cjs
 const { chromium, url, launchOptions } = require('./test-environment.cjs');
 
-const ALL_LOOKS = ['glass', 'paper', 'night', 'dawn', 'day', 'pro-night', 'bloom', 'room', 'fluff', 'tape', 'riso'];
-const SIZE_MAP = { phone: [390, 844], small: [360, 740], ipad: [820, 1180], 'ipad-land': [1180, 820], 'ipad-mini': [744, 1133] };
+const { LOOKS: ALL_LOOKS, SCREENS, newPage, setLook, openScreen } = require('./screens.cjs');
 const LOOKS = process.env.LOOKS ? process.env.LOOKS.split(',') : ALL_LOOKS;
 const SIZES = (process.env.SIZES || 'phone,small,ipad,ipad-land').split(',');
-const SCREENS = ['home', 'settings', 'look:0', 'look:1', 'lock', 'list', 'data', 'language', 'review', 'pro', 'pay', 'add'];
 
 const audit = () => {
   const vis = el => { if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return false; const s = getComputedStyle(el); if (s.visibility === 'hidden' || +s.opacity === 0 || s.display === 'none') return false;
@@ -109,28 +107,11 @@ const audit = () => {
   const browser = await chromium.launch({ ...launchOptions, channel: process.env.PLAYWRIGHT_CHANNEL || 'chrome' });
   const report = {}; let n = 0;
   for (const size of SIZES) for (const look of LOOKS) {
-    const [w, h] = SIZE_MAP[size];
-    const ctx = await browser.newContext({ lookTabs: true, viewport: { width: w, height: h }, isMobile: w < 700, hasTouch: true, proFree: true });
-    await ctx.addInitScript(() => { window.webkit = { messageHandlers: { suisui: { postMessage() {} } } }; window.SuiSuiIOS = { status: { live: true, liveAllowed: true, liveWanted: true, notifications: 'granted' }, liveActivity() {}, requestNotifications() {}, openSettings() {} }; });
-    const page = await ctx.newPage();
-    await page.goto(url, { waitUntil: 'networkidle' });
-    await page.evaluate(l => { const s = window.suisui.pro.state.settings; s.tipsSeen = true; s.iosSetupSeen = true; s.androidSetupSeen = true;
-      if (['glass', 'paper', 'night'].includes(l)) { s.uiStyle = l; s.proTheme = ''; } else s.proTheme = l === 'pro-night' ? 'night' : l; window.suisui.pro.save(); }, look);
+    const { ctx, page } = await newPage(browser, size);
+    await setLook(page, url, look);
     for (const screen of SCREENS) {
-      await page.reload({ waitUntil: 'networkidle' });
-      await page.evaluate(() => document.querySelectorAll('dialog[open]').forEach(d => d.close()));
       try {
-        const [kind, tab] = screen.split(':');
-        if (kind === 'home') { /* list */ }
-        else if (kind === 'add') { await page.evaluate(() => { const a = document.querySelector('.nav-add'); if (a && a.offsetParent) a.click(); }); await page.waitForTimeout(400); await page.evaluate(() => document.querySelector('#task-input').focus()); await page.keyboard.type('买一束花'); }
-        else if (kind === 'review') { await page.evaluate(() => document.querySelector('.nav-button[data-view=review]').click()); }
-        else if (kind === 'pro') { await page.evaluate(() => window.SuiSuiPro.open()); }
-        else if (kind === 'pay') { await page.evaluate(() => window.SuiSuiPro.openPay()); }
-        else {
-          await page.locator('.nav-button[data-view=settings]').click();
-          if (kind !== 'settings') { await page.locator(`[data-settings-page=${kind}]`).first().click(); }
-          if (tab) { const tb = page.locator('[data-look-tab]').nth(+tab); if (await tb.count()) await tb.click(); }
-        }
+        await openScreen(page, screen);
         await page.waitForTimeout(700);
         const found = await page.evaluate(audit);
         if (found.length) { report[`${size} ${look} ${screen}`] = found; if (process.env.SHOTS) { require('node:fs').mkdirSync(process.env.SHOTS, { recursive: true }); await page.screenshot({ path: `${process.env.SHOTS}/${size}-${look}-${screen.replace(':', '_')}.png`, fullPage: false }); } }

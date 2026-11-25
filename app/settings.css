@@ -38,8 +38,10 @@ body:not([data-settings-page=index]) #settings-panel .settings-top h1,#review-pa
 #settings-panel .settings-page[data-tab] .look-group{display:none}
 #settings-panel .settings-page .setting-note{font-size:13px;line-height:1.55;color:var(--s-muted)!important}
 /* rows inside a card: one line each, hairline between */
-#settings-panel .settings-page .setting-row{min-height:50px;font-size:17px;font-weight:400!important}
+#settings-panel .settings-page .setting-row{min-height:50px;height:auto!important;font-size:17px;font-weight:400!important}
 #settings-panel .settings-page .setting-row>span:first-child{font-weight:500}
+@media(min-width:761px){#settings-panel .settings-page .setting-row{padding-block:12px}
+  #settings-panel .settings-page .setting-row>span:first-child{flex:1;min-width:0;line-height:1.4}}
 
 /* ---------- tiles: equal size, no box around the tile, the picture carries the choice ---------- */
 #settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button){
@@ -68,6 +70,9 @@ body:not([data-settings-page=index]) #settings-panel .settings-top h1,#review-pa
   background:var(--s-sel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/11px no-repeat;
   box-shadow:0 0 0 2px color-mix(in srgb,var(--page,#fff) 80%,transparent);opacity:0;transform:scale(.6);transition:opacity .16s ease,transform .22s cubic-bezier(.32,.72,0,1)}
 #settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button).active::before{opacity:1;transform:none}
+/* font tiles: the check sits on the tile's corner, outside the sample text (it covered 「Aa 碎碎」) */
+#settings-panel .font-chip{position:relative}
+#settings-panel .font-chip::before{top:-6px!important;right:-6px!important}
 /* dark ink → white badge with a dark tick */
 html:is([data-style=night],[data-pro-skin=night]) #settings-panel{--s-sel:#f2f2f4}
 html:is([data-style=night],[data-pro-skin=night]) #settings-panel :is(.style-chip,.pro-theme-chip,.font-chip,.theme-chip,.wallpaper-choice,.segmented>button,.material-tiles>button)::before{
@@ -169,6 +174,14 @@ svg.ph{stroke:none!important;stroke-width:0!important}
 /* ================= 1.18 add sheet: type and send; one row of value pills, one option row at a time ================= */
 .add-form .add-pills{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin:12px -2px 2px;padding:2px}
 .add-form .add-pills::-webkit-scrollbar{display:none}
+@media(min-width:761px){.add-form .add-pills{flex-wrap:wrap;overflow:visible}} /* iPad portrait: the list column is narrower than the phone sheet */
+#task-input{text-overflow:ellipsis}
+/* 「+ 新建分组」 after the groups; tapping it turns into a small name field in place */
+#add-group-chips .chip-new-group{border:1px dashed color-mix(in srgb,currentColor 35%,transparent)!important;background:transparent!important;box-shadow:none!important;color:var(--muted);gap:4px}
+#add-group-chips .chip-new-group svg{width:14px;height:14px}
+#add-group-chips .chip-new-group.is-editing{border-style:solid!important;border-color:var(--accent,currentColor)!important;color:inherit;padding-block:0}
+#add-group-chips .chip-new-group input{all:unset;width:6.5em;min-height:32px;font:inherit;color:inherit;caret-color:var(--accent,currentColor)}
+#add-group-chips .chip-new-group input::placeholder{color:var(--muted)}
 .add-pill{flex:none;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 10px;border:0;border-radius:11px;background:color-mix(in srgb,var(--ink,#1d1d1f) 6%,transparent);color:var(--muted,#6e6e73);font:500 13.5px/1 var(--ui-face);transition:background .18s ease,color .18s ease}
 .add-pill svg{width:16px;height:16px}
 .add-pill .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
@@ -491,21 +504,3 @@ html[data-style=night] #backup-state.is-old{color:#ffb35c}
 #settings-panel .settings-page[data-page=look] fieldset:not(.ui-styles)>:not(legend):not(.more-appearance){content-visibility:auto;contain-intrinsic-size:auto 96px}
 /* the add bar belongs to the list: it never sits on top of the Pro page or the checkout (it covered the buy buttons) */
 html body.pro-open #fab-add#fab-add#fab-add,html body.pro-paying #fab-add#fab-add#fab-add{display:none!important}
-
-/* 1.22 穿模: the font tile's check sat on top of 「Aa 碎碎」 — it now sits on the tile's corner, outside the sample text */
-#settings-panel .font-chip{position:relative}
-#settings-panel .font-chip::before{top:-6px!important;right:-6px!important}
-/* 1.22 iPad portrait: the list column is narrower than a phone's add sheet, so the option pills wrap instead of hiding past the edge */
-@media(min-width:761px){.add-form .add-pills{flex-wrap:wrap;overflow:visible}}
-#task-input{text-overflow:ellipsis}
-/* 1.22 iPad portrait: the settings column is narrow, a setting's title can take two lines — the row grows instead of
-   spilling onto the note under it (it had a fixed 50px height on wide screens) */
-#settings-panel .settings-page .setting-row{height:auto!important}
-@media(min-width:761px){#settings-panel .settings-page .setting-row{padding-block:12px}
-  #settings-panel .settings-page .setting-row>span:first-child{flex:1;min-width:0;line-height:1.4}}
-/* 1.22 add sheet: 「+ 新建分组」 sits after the groups; tapping it turns into a small name field in place */
-#add-group-chips .chip-new-group{border:1px dashed color-mix(in srgb,currentColor 35%,transparent)!important;background:transparent!important;box-shadow:none!important;color:var(--muted);gap:4px}
-#add-group-chips .chip-new-group svg{width:14px;height:14px}
-#add-group-chips .chip-new-group.is-editing{border-style:solid!important;border-color:var(--accent,currentColor)!important;color:inherit;padding-block:0}
-#add-group-chips .chip-new-group input{all:unset;width:6.5em;min-height:32px;font:inherit;color:inherit;caret-color:var(--accent,currentColor)}
-#add-group-chips .chip-new-group input::placeholder{color:var(--muted)}

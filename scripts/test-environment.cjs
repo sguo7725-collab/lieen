@@ -65,6 +65,9 @@ module.exports = {
   url: process.env.LOCKTODO_URL || 'http://localhost:8793',
   launchOptions: {
     headless: true,
+    // Newer Chrome turns a left-edge swipe into the browser's own Back (it reloaded the page under the iPhone
+    // edge-swipe test). The phone shells have no such gesture, so the tests switch it off.
+    args: ['--overscroll-history-navigation=0', '--disable-features=TouchpadOverscrollHistoryNavigation,OverscrollHistoryNavigation'],
     ...(process.env.PLAYWRIGHT_CHANNEL
       ? { channel: process.env.PLAYWRIGHT_CHANNEL }
       : process.platform === 'win32' ? { channel: 'msedge' } : {})
