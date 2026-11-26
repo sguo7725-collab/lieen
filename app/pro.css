@@ -1065,3 +1065,12 @@ a.pro-pay-main{text-decoration:none}
    decorations (::before/::after, position:absolute) were sized to the whole side bar — a big diagonal streak over the
    list that also covered 设置. Give the button its own box. */
 @media(min-width:761px){.navigation .nav-add{position:relative;isolation:isolate}}
+/* 1.22 Android tablets / iPad: the Pro page was a phone column in the middle of a big screen — the theme carousel
+   stopped dead at the column edge and the checkout card (no real backdrop) let the price bar peek out around it.
+   Wide screens get a wider column, a fade where the carousel continues, and the checkout as a centred dialog. */
+@media (min-width:700px){
+  .pro-sheet>*{max-width:780px;padding-left:32px;padding-right:32px}
+  .pro-themes{margin:0 -32px;padding:2px 32px 6px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent)}
+  .pro-pay{align-items:center;padding:24px;background:#000000a6;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .pro-pay-card{width:min(100%,480px);max-height:min(80svh,640px)}
+}
