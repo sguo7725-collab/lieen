@@ -76,14 +76,19 @@
   }
 
   /** The real checkout (release builds, Android and web). Steps: start → qr → waiting, or start → afdian, then done. */
+  /* A release build can ship before its server is online (it goes live when the ICP filing is approved): while the
+     shop can't be reached and the phone itself is online, the checkout says 即将开放 instead of a network error. */
+  let notOpenYet = false;
   function renderLive(el) {
-    if (CLOSED) { // no Pro server in this build yet: nothing to buy, no code to check
+    if (CLOSED || notOpenYet) { // no Pro server in this build yet (or not online yet): nothing to buy, no code to check
       el.innerHTML = `<div class="pro-pay-card" tabindex="-1"><span class="pro-pay-grab" aria-hidden="true"></span><header class="pro-pay-head"><h2 id="pro-pay-title">Pro 即将开放</h2><button type="button" class="pro-pay-x" id="pro-pay-close" aria-label="关闭">${icon('x')}</button></header>
         <div class="pro-pay-closed"><p>Pro 的购买和兑换码还没有开放，开放后在这里开通。</p><p class="pro-pay-fine">开放后每台手机都要单独开通：购买一次，或用兑换码。安装包转给别人不会带上你的 Pro。</p>
-        ${info().trialUsed ? '' : `<button type="button" class="pro-cta" id="pro-pay-trial">先免费试用 ${TRIAL_DAYS} 天</button>`}</div></div>`;
+        ${info().trialUsed ? '' : `<button type="button" class="pro-cta" id="pro-pay-trial">先免费试用 ${TRIAL_DAYS} 天</button>`}
+        ${notOpenYet ? '<button type="button" class="pro-pay-link" id="pro-pay-recheck">再试一次</button>' : ''}</div></div>`;
       API.icons(el);
       $('pro-pay-close')?.addEventListener('click', closePay);
       $('pro-pay-trial')?.addEventListener('click', () => { closePay(); startTrial(); });
+      $('pro-pay-recheck')?.addEventListener('click', () => { notOpenYet = false; shop = null; payNote = ''; renderLive(el); });
       return;
     }
     const st = payStep, cfg = shop, o = info().order;
@@ -184,7 +189,10 @@
     // while waiting, ask every 5 seconds; first load the shop
     clearTimeout(pollTimer);
     if (st === 'waiting' && o && o.status !== 'rejected') pollTimer = setTimeout(() => { if (!$('pro-pay').hidden && payStep === 'waiting') check(false); }, 5000);
-    if (!cfg && !payNote) loadShop().then(() => renderLive(el), e => bad(e, 'start'));
+    if (!cfg && !payNote) loadShop().then(() => { notOpenYet = false; renderLive(el); }, e => {
+      // reachable network but no shop answering = the server is not online yet
+      if (LIVE && (e.code === 'offline' || e.code === 'http') && navigator.onLine !== false) { notOpenYet = true; renderLive(el); } else bad(e, 'start');
+    });
   }
   let payNoteBad = false, payWorking = '';
   /** The collection QR in builds without a server: your own 支付宝 code (app/assets/pay-qr.jpg). Release builds show the

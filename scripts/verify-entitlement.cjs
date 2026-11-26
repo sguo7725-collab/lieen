@@ -35,6 +35,17 @@ const { chromium, url, launchOptions } = require('./test-environment.cjs');
   assert.equal(await isPro(), true, 'the trial unlocks Pro for its days');
 
   assert.deepEqual(errors, []);
+
+  // a release build shipped before its server is online (filing not approved yet): no Pro, checkout says 即将开放
+  const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await ctx2.addInitScript(() => { window.SUISUI_PRO_CONFIG = { server: 'https://127.0.0.1:9', publicKey: { kty: 'EC', crv: 'P-256', x: 'AAAA', y: 'AAAA' } }; });
+  const p2 = await ctx2.newPage(); const errs2 = []; p2.on('pageerror', e => errs2.push(e.message));
+  await p2.goto(url, { waitUntil: 'networkidle' });
+  assert.equal(await p2.evaluate(() => window.SuiSuiPro.isPro()), false);
+  await p2.evaluate(() => window.SuiSuiPro.openPay());
+  await p2.locator('#pro-pay-title').filter({ hasText: 'Pro 即将开放' }).waitFor({ timeout: 8000 });
+  assert.equal(await p2.locator('#pro-pay-recheck').count(), 1, 'it offers to try again (the server may be online by then)');
+  assert.deepEqual(errs2, []);
   await browser.close();
-  console.log('verify-entitlement: shipped build has no free Pro, stored flags and demo codes are refused, trial works');
+  console.log('verify-entitlement: shipped build has no free Pro, stored flags and demo codes are refused, trial works, a release build waits for its server');
 })().catch(e => { console.error(e); process.exit(1); });
