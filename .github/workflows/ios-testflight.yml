@@ -7,7 +7,7 @@
 #     ASC_ISSUER_ID       App Store Connect API issuer ID
 #     ASC_KEY_P8          Full text of the downloaded AuthKey_XXXX.p8 file
 #   Repository variable:
-#     BUNDLE_ID           e.g. com.yourname.suisui (must match the App ID and App Store Connect record)
+#     BUNDLE_ID           com.suisuiqingdan.app (must match the App ID and App Store Connect record)
 #
 # TestFlight builds expire after 90 days; the monthly schedule keeps a fresh build available.
 name: iOS TestFlight
@@ -29,7 +29,7 @@ jobs:
       TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      BUNDLE_ID: ${{ vars.BUNDLE_ID }}
+      BUNDLE_ID: ${{ vars.BUNDLE_ID || 'com.suisuiqingdan.app' }}
     steps:
       - name: Check configuration
         working-directory: .
@@ -52,6 +52,7 @@ jobs:
         env:
           PRO_SERVER: ${{ vars.PRO_SERVER }}
           PRO_PUBLIC_KEY: ${{ vars.PRO_PUBLIC_KEY }}
+          PRO_STORE: appstore # Apple requires in-app purchase for unlocking features in App Store apps
         run: node scripts/write-pro-config.cjs
 
       - name: Select Xcode

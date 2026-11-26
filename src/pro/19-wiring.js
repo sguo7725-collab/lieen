@@ -46,5 +46,7 @@
     } else if (rect) flyToJar(rect); else drawMiniJar(true);
     if (allDone) setTimeout(celebrate, 760);
   });
+  // App Store build: StoreKit changed its answer (bought on another device, Ask to Buy approved, refunded).
+  window.suisuiProChanged = () => { applyTheme(); API.render(); refreshAll(); };
   // A trial that ends while the app is open: the free look comes back.
   setInterval(() => { const was = document.documentElement.dataset.proTheme || ''; if (was !== activeTheme()) { applyTheme(); API.render(); refreshAll(); } }, 60000);

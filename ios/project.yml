@@ -11,7 +11,7 @@ options:
   developmentLanguage: zh-Hans
 settings:
   base:
-    BASE_BUNDLE_ID: com.yourname.suisui
+    BASE_BUNDLE_ID: com.suisuiqingdan.app
     APP_GROUP_ID: group.$(BASE_BUNDLE_ID)
     MARKETING_VERSION: "1.22.0"
     CURRENT_PROJECT_VERSION: "1"

@@ -23,11 +23,25 @@
   function closePay() { const el = $('pro-pay'); if (el) el.hidden = true; document.body.classList.remove('pro-paying'); clearTimeout(pollTimer); }
   let pollTimer = 0;
   const ios = () => payPlatform() === 'ios';
+  /* App Store build: the shell runs StoreKit and answers through window.suisuiIAP({ op, outcome }).
+     outcome: ok | cancel | pending (Ask to Buy) | fail | none (nothing to restore / no code redeemed). */
+  const shownPrice = () => (STORE && window.SuiSuiIOS?.status?.price) || PRICE;
+  function storeRun(op) {
+    if (!window.SuiSuiIOS?.iap) { payStep = 'start'; payNote = 'fail'; renderPay(); return; }
+    window.suisuiIAP = r => {
+      const outcome = r?.outcome || 'fail';
+      if (owns()) { payStep = 'done'; payNote = ''; applyTheme(); refreshAll(); }
+      else { payStep = 'start'; payNote = outcome === 'pending' ? 'ask' : outcome === 'ok' ? 'fail' : outcome; }
+      if (op === 'redeem' && outcome === 'none') payNote = '';
+      if (!$('pro-pay')?.hidden) renderPay();
+    };
+    window.SuiSuiIOS.iap(op);
+  }
   function renderPay() {
     const el = $('pro-pay'); if (!el) return;
-    // Android, web and the sideloaded iPhone build all buy through the Pro server. The App Store sheet below is only a
-    // test-build mock-up for a future App Store release (Apple requires in-app purchase there).
-    if (!ios() || !TESTING) return renderLive(el);
+    // Android, web and the sideloaded iPhone build all buy through the Pro server. The App Store sheet below is the App
+    // Store build's real in-app purchase (STORE, via ProStore.swift), and a mock-up of it in test builds.
+    if (!ios() || !(TESTING || STORE)) return renderLive(el);
     const kind = ios() ? 'ios' : 'code', working = payStep === 'working';
     const head = `<span class="pro-pay-grab" aria-hidden="true"></span><header class="pro-pay-head"><h2 id="pro-pay-title">${payStep === 'done' ? 'Pro 已解锁' : '碎碎清单 Pro'}</h2>${working ? '' : '<button type="button" class="pro-pay-x" id="pro-pay-close" aria-label="关闭">' + icon('x') + '</button>'}</header>`;
     let body = '';
@@ -38,11 +52,11 @@
     } else if (working) {
       body = `<div class="pro-pay-working" role="status"><span class="pro-spin" aria-hidden="true"></span><p>${ios() ? (payNote === 'restore' ? '正在查找这个 Apple 账户的购买记录…' : '正在连接 App Store…') : '正在验证兑换码…'}</p></div>`;
     } else {
-      const price = `<div class="pro-pay-sum"><span class="pro-pay-amt"><b>${PRICE}</b><s>${LIST_PRICE}</s></span><span class="pro-pay-what">一次买断，永久使用<small>${PRICE_NOTE}</small></span></div>`;
+      const price = `<div class="pro-pay-sum"><span class="pro-pay-amt"><b>${shownPrice()}</b>${STORE ? '' : `<s>${LIST_PRICE}</s>`}</span><span class="pro-pay-what">一次买断，永久使用<small>${PRICE_NOTE}</small></span></div>`;
       const note = payNote ? `<p class="pro-pay-note${/^(fail|used|offline|bad|none)/.test(payNote) ? ' is-error' : ''}" role="alert">${{ cancel: '已取消，没有扣款。', fail: '没能完成付款：连不上 App Store。检查网络后再试一次。', ask: '已经发给家长了。家长同意后，Pro 会自动解锁。', none: '这个 Apple 账户没有买过 Pro。换手机前用的是别的 Apple 账户吗？', used: '这个兑换码已经在 3 台设备上用过了。需要帮助，就在“关于”里给我们留言。', offline: '验证兑换码要联网。连上网再试一次。', bad: '兑换码不对：应该是 SUISUI 开头，后面 12 位字母和数字。', sent: '本地预览没有真的付款页。付完款，付款页会显示一串兑换码，像这样：' }[payNote] || ''}${payNote === 'sent' ? ` <button type="button" class="pro-pay-code" id="pro-pay-fill">${demoCode}</button>` : ''}</p>` : '';
       body = ios()
-        ? `${price}${note}<button type="button" class="pro-pay-main" id="pro-pay-go">用 App Store 购买 ${PRICE}</button>
-           <p class="pro-pay-fine">付款由 Apple 处理 · <button type="button" class="pro-pay-link" id="pro-pay-restore">恢复购买</button></p>`
+        ? `${price}${note}<button type="button" class="pro-pay-main" id="pro-pay-go">用 App Store 购买 ${shownPrice()}</button>
+           <p class="pro-pay-fine">付款由 Apple 处理 · <button type="button" class="pro-pay-link" id="pro-pay-restore">恢复购买</button>${STORE ? ' · <button type="button" class="pro-pay-link" id="pro-pay-offer">兑换优惠码</button>' : ''}</p>`
         : `${price}<ol class="pro-pay-steps"><li>付款</li><li>拿到兑换码</li><li>粘贴兑换</li></ol>
            <button type="button" class="pro-pay-main" id="pro-pay-go">打开付款页 · ${PRICE}</button>
            <form class="pro-pay-redeem" id="pro-pay-redeem"><input id="pro-pay-code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="已有兑换码？SUISUI-…" aria-label="兑换码"><button type="button" class="pro-pay-paste" id="pro-pay-paste">粘贴</button><button type="submit">兑换</button></form>${note}
@@ -56,10 +70,13 @@
     $('pro-pay-go')?.addEventListener('click', () => {
       if (!ios()) { payNote = 'sent'; renderPay(); $('pro-pay-code')?.focus(); return; }
       payStep = 'working'; payNote = ''; renderPay();
+      if (STORE) return storeRun('buy');
       setTimeout(() => { if (payOutcome === 'ok') { buy(); payStep = 'done'; } else { payStep = 'start'; payNote = payOutcome; } renderPay(); }, 1100);
     });
+    $('pro-pay-offer')?.addEventListener('click', () => storeRun('redeem'));
     $('pro-pay-restore')?.addEventListener('click', () => {
       payStep = 'working'; payNote = 'restore'; renderPay();
+      if (STORE) return storeRun('restore');
       setTimeout(() => { if (info().owned || payOutcome === 'ok') { info().via = 'appstore'; buy(); payStep = 'done'; } else { payStep = 'start'; payNote = 'none'; } renderPay(); }, 900);
     });
     $('pro-pay-fill')?.addEventListener('click', () => { $('pro-pay-code').value = demoCode; $('pro-pay-code').focus(); });

@@ -69,6 +69,7 @@ final class WebShell: NSObject, ObservableObject, WKScriptMessageHandler, WKNavi
 
     override init() {
         super.init()
+        status = ["pro": ProStore.entitled, "price": ProStore.displayPrice ?? ""] // last known; StoreKit re-checks on "ready"
         observer = NotificationCenter.default.addObserver(forName: TodoRepository.didChange, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.pushData() }
         }
@@ -125,6 +126,8 @@ final class WebShell: NSObject, ObservableObject, WKScriptMessageHandler, WKNavi
             liveActivity: on => post('liveActivity', !!on),
             requestNotifications: () => post('requestNotifications', true),
             openSettings: () => post('openSettings', true),
+            // App Store builds: in-app purchase of Pro (ProStore.swift). Answers through window.suisuiIAP(result).
+            iap: op => post('iap', String(op || '')),
             _set(json) { data = json; },
             _status(s) { this.status = s; }
           };
@@ -173,8 +176,20 @@ final class WebShell: NSObject, ObservableObject, WKScriptMessageHandler, WKNavi
             }
         case "openSettings":
             if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+        case "iap":
+            let op = arg as? String ?? ""
+            let scene = webView?.window?.windowScene
+            Task {
+                let result = await ProStore.run(op, scene: scene)
+                await refreshStatus()
+                _ = try? await webView?.evaluateJavaScript("window.suisuiIAP&&suisuiIAP(\(Self.jsonText(result)));")
+            }
         case "ready":
-            Task { await refreshStatus() }
+            Task {
+                await refreshStatus()
+                ProStore.listen { [weak self] in Task { await self?.refreshStatus(proChanged: true) } }
+                if await ProStore.refresh() { await refreshStatus(proChanged: true) } else { await refreshStatus() }
+            }
         default: break
         }
     }
@@ -197,8 +212,11 @@ final class WebShell: NSObject, ObservableObject, WKScriptMessageHandler, WKNavi
         installBridge()
     }
 
-    private func refreshStatus() async {
+    private func refreshStatus(proChanged: Bool = false) async {
         status = [
+            // App Store builds: Pro as StoreKit sees it on this Apple ID (the page's own data cannot turn it on)
+            "pro": ProStore.entitled,
+            "price": ProStore.displayPrice ?? "",
             "live": LiveActivityController.isRunning,
             "liveAllowed": LiveActivityController.isAvailable,
             "liveWanted": liveWanted,
@@ -206,7 +224,7 @@ final class WebShell: NSObject, ObservableObject, WKScriptMessageHandler, WKNavi
             // iPad has no Live Activities on the Lock Screen; the page points to the widgets instead
             "pad": UIDevice.current.userInterfaceIdiom == .pad
         ]
-        _ = try? await webView?.evaluateJavaScript("window.SuiSuiIOS&&SuiSuiIOS._status(\(Self.jsonText(status)));window.suisuiIOSStatus&&suisuiIOSStatus();")
+        _ = try? await webView?.evaluateJavaScript("window.SuiSuiIOS&&SuiSuiIOS._status(\(Self.jsonText(status)));window.suisuiIOSStatus&&suisuiIOSStatus();" + (proChanged ? "window.suisuiProChanged&&suisuiProChanged();" : ""))
     }
 
     // MARK: Lifecycle

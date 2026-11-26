@@ -49,6 +49,7 @@
        正式版 (server + publicKey): Pro only with a licence the server signed for THIS device — buying, or a redeem
                   code, on each phone. A copied APK/IPA carries no licence, so it starts without Pro.
        未开放 (no server yet, the default): nothing can unlock Pro; the page says sales open soon. Only the free trial.
+       App Store 版 ({ store: 'appstore' }): Apple in-app purchase on the App Store build; StoreKit decides, per Apple ID.
        测试版 (set only by the tests or an explicit test build): freeForTesters = all of Pro free; simulate = Pro
                   locked but the checkout runs against a stand-in, so the paid flow can be tried without paying.
      Nothing stored in the data (settings.pro.owned, an imported backup, an earlier test build's simulated purchase)
@@ -60,17 +61,21 @@
   const SHOW_VIEW = (() => { try { return new URLSearchParams(location.search).get('view') || 'home'; } catch { return 'home'; } })();
   const FREE = !!(window.SUISUI_PRO_CONFIG || {}).freeForTesters || !!SHOW;
   const CFG = window.SUISUI_PRO_CONFIG || {};
-  const LIVE = !FREE && !!CFG.server && !!CFG.publicKey;
+  /** App Store build (iPhone/iPad from the App Store): Pro is Apple's in-app purchase, checked by StoreKit (ProStore.swift). */
+  const STORE = !FREE && CFG.store === 'appstore';
+  const LIVE = !FREE && !STORE && !!CFG.server && !!CFG.publicKey;
   /** A test build: purchases and codes are simulated (never in a shipped build). */
-  const TESTING = FREE || (!LIVE && !!CFG.simulate);
+  const TESTING = FREE || (!LIVE && !STORE && !!CFG.simulate);
   /** No server configured and not a test build: Pro cannot be bought or redeemed yet. */
-  const CLOSED = !TESTING && !LIVE;
+  const CLOSED = !TESTING && !LIVE && !STORE;
+  /** App Store builds: what StoreKit says on this Apple ID, reported by the iPhone shell. */
+  const storeOwns = () => { try { return window.SuiSuiIOS?.status?.pro === true; } catch { return false; } };
   const SERVER = String(CFG.server || '').replace(/\/$/, '');
   // with a server, owning Pro means holding a licence it signed (checked again on every start)
   /** Bought or redeemed on THIS device: a licence whose device matches (its signature is checked at start by liveBoot()).
       Test builds keep the simulated purchase flag. */
-  const owns = () => !!info().owned && (TESTING || (LIVE && licenceForThisDevice(info().licence)));
-  const isPro = () => FREE || owns() || (info().trialEnds || 0) > Date.now();
+  const owns = () => STORE ? storeOwns() : !!info().owned && (TESTING || (LIVE && licenceForThisDevice(info().licence)));
+  const isPro = () => FREE || owns() || (!STORE && (info().trialEnds || 0) > Date.now());
   const trialLeft = () => Math.max(0, Math.ceil(((info().trialEnds || 0) - Date.now()) / 864e5));
   const status = () => owns() ? '已开通' : FREE ? '' : isPro() ? `试用中 · 剩 ${trialLeft()} 天` : '';
   let tryOn = '';
@@ -83,7 +88,7 @@
   const themeLabel = () => { const id = activeTheme(); if (!id) return ''; return !tryOn && savedTheme() === 'auto' ? `随光 · ${THEMES[id].full}` : THEMES[id].full; };
   function persist() { API.save(); }
   function buy() { info().owned = true; if (!info().via) info().via = payPlatform() === 'ios' ? 'appstore' : 'code'; persist(); endTry(false); applyTheme(); refreshAll(); }
-  function startTrial() { const p = info(); if (p.trialUsed) return; p.trialUsed = true; p.trialEnds = Date.now() + TRIAL_DAYS * 864e5; persist(); endTry(false); applyTheme(); refreshAll(); API.showToast(`已开始 ${TRIAL_DAYS} 天免费试用，Pro 全部可用`); }
+  function startTrial() { const p = info(); if (p.trialUsed || STORE) return; p.trialUsed = true; p.trialEnds = Date.now() + TRIAL_DAYS * 864e5; persist(); endTry(false); applyTheme(); refreshAll(); API.showToast(`已开始 ${TRIAL_DAYS} 天免费试用，Pro 全部可用`); }
   function restore() { API.showToast(owns() ? '已恢复购买' : '没有找到购买记录'); }
   /* ---------- How people pay, by platform ----------
      iPhone: App Store in-app purchase (a non-consumable), restored with the Apple account. Apple requires this for
@@ -215,11 +220,25 @@
   function closePay() { const el = $('pro-pay'); if (el) el.hidden = true; document.body.classList.remove('pro-paying'); clearTimeout(pollTimer); }
   let pollTimer = 0;
   const ios = () => payPlatform() === 'ios';
+  /* App Store build: the shell runs StoreKit and answers through window.suisuiIAP({ op, outcome }).
+     outcome: ok | cancel | pending (Ask to Buy) | fail | none (nothing to restore / no code redeemed). */
+  const shownPrice = () => (STORE && window.SuiSuiIOS?.status?.price) || PRICE;
+  function storeRun(op) {
+    if (!window.SuiSuiIOS?.iap) { payStep = 'start'; payNote = 'fail'; renderPay(); return; }
+    window.suisuiIAP = r => {
+      const outcome = r?.outcome || 'fail';
+      if (owns()) { payStep = 'done'; payNote = ''; applyTheme(); refreshAll(); }
+      else { payStep = 'start'; payNote = outcome === 'pending' ? 'ask' : outcome === 'ok' ? 'fail' : outcome; }
+      if (op === 'redeem' && outcome === 'none') payNote = '';
+      if (!$('pro-pay')?.hidden) renderPay();
+    };
+    window.SuiSuiIOS.iap(op);
+  }
   function renderPay() {
     const el = $('pro-pay'); if (!el) return;
-    // Android, web and the sideloaded iPhone build all buy through the Pro server. The App Store sheet below is only a
-    // test-build mock-up for a future App Store release (Apple requires in-app purchase there).
-    if (!ios() || !TESTING) return renderLive(el);
+    // Android, web and the sideloaded iPhone build all buy through the Pro server. The App Store sheet below is the App
+    // Store build's real in-app purchase (STORE, via ProStore.swift), and a mock-up of it in test builds.
+    if (!ios() || !(TESTING || STORE)) return renderLive(el);
     const kind = ios() ? 'ios' : 'code', working = payStep === 'working';
     const head = `<span class="pro-pay-grab" aria-hidden="true"></span><header class="pro-pay-head"><h2 id="pro-pay-title">${payStep === 'done' ? 'Pro 已解锁' : '碎碎清单 Pro'}</h2>${working ? '' : '<button type="button" class="pro-pay-x" id="pro-pay-close" aria-label="关闭">' + icon('x') + '</button>'}</header>`;
     let body = '';
@@ -230,11 +249,11 @@
     } else if (working) {
       body = `<div class="pro-pay-working" role="status"><span class="pro-spin" aria-hidden="true"></span><p>${ios() ? (payNote === 'restore' ? '正在查找这个 Apple 账户的购买记录…' : '正在连接 App Store…') : '正在验证兑换码…'}</p></div>`;
     } else {
-      const price = `<div class="pro-pay-sum"><span class="pro-pay-amt"><b>${PRICE}</b><s>${LIST_PRICE}</s></span><span class="pro-pay-what">一次买断，永久使用<small>${PRICE_NOTE}</small></span></div>`;
+      const price = `<div class="pro-pay-sum"><span class="pro-pay-amt"><b>${shownPrice()}</b>${STORE ? '' : `<s>${LIST_PRICE}</s>`}</span><span class="pro-pay-what">一次买断，永久使用<small>${PRICE_NOTE}</small></span></div>`;
       const note = payNote ? `<p class="pro-pay-note${/^(fail|used|offline|bad|none)/.test(payNote) ? ' is-error' : ''}" role="alert">${{ cancel: '已取消，没有扣款。', fail: '没能完成付款：连不上 App Store。检查网络后再试一次。', ask: '已经发给家长了。家长同意后，Pro 会自动解锁。', none: '这个 Apple 账户没有买过 Pro。换手机前用的是别的 Apple 账户吗？', used: '这个兑换码已经在 3 台设备上用过了。需要帮助，就在“关于”里给我们留言。', offline: '验证兑换码要联网。连上网再试一次。', bad: '兑换码不对：应该是 SUISUI 开头，后面 12 位字母和数字。', sent: '本地预览没有真的付款页。付完款，付款页会显示一串兑换码，像这样：' }[payNote] || ''}${payNote === 'sent' ? ` <button type="button" class="pro-pay-code" id="pro-pay-fill">${demoCode}</button>` : ''}</p>` : '';
       body = ios()
-        ? `${price}${note}<button type="button" class="pro-pay-main" id="pro-pay-go">用 App Store 购买 ${PRICE}</button>
-           <p class="pro-pay-fine">付款由 Apple 处理 · <button type="button" class="pro-pay-link" id="pro-pay-restore">恢复购买</button></p>`
+        ? `${price}${note}<button type="button" class="pro-pay-main" id="pro-pay-go">用 App Store 购买 ${shownPrice()}</button>
+           <p class="pro-pay-fine">付款由 Apple 处理 · <button type="button" class="pro-pay-link" id="pro-pay-restore">恢复购买</button>${STORE ? ' · <button type="button" class="pro-pay-link" id="pro-pay-offer">兑换优惠码</button>' : ''}</p>`
         : `${price}<ol class="pro-pay-steps"><li>付款</li><li>拿到兑换码</li><li>粘贴兑换</li></ol>
            <button type="button" class="pro-pay-main" id="pro-pay-go">打开付款页 · ${PRICE}</button>
            <form class="pro-pay-redeem" id="pro-pay-redeem"><input id="pro-pay-code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="已有兑换码？SUISUI-…" aria-label="兑换码"><button type="button" class="pro-pay-paste" id="pro-pay-paste">粘贴</button><button type="submit">兑换</button></form>${note}
@@ -248,10 +267,13 @@
     $('pro-pay-go')?.addEventListener('click', () => {
       if (!ios()) { payNote = 'sent'; renderPay(); $('pro-pay-code')?.focus(); return; }
       payStep = 'working'; payNote = ''; renderPay();
+      if (STORE) return storeRun('buy');
       setTimeout(() => { if (payOutcome === 'ok') { buy(); payStep = 'done'; } else { payStep = 'start'; payNote = payOutcome; } renderPay(); }, 1100);
     });
+    $('pro-pay-offer')?.addEventListener('click', () => storeRun('redeem'));
     $('pro-pay-restore')?.addEventListener('click', () => {
       payStep = 'working'; payNote = 'restore'; renderPay();
+      if (STORE) return storeRun('restore');
       setTimeout(() => { if (info().owned || payOutcome === 'ok') { info().via = 'appstore'; buy(); payStep = 'done'; } else { payStep = 'start'; payNote = 'none'; } renderPay(); }, 900);
     });
     $('pro-pay-fill')?.addEventListener('click', () => { $('pro-pay-code').value = demoCode; $('pro-pay-code').focus(); });
@@ -1115,7 +1137,7 @@
       <footer class="pro-buy" data-pay="${payPlatform()}">
         ${owned ? `<p class="pro-owned">${icon('badge-check')}Pro 已开通，感谢支持。${info().code ? `<small>兑换码 ${esc(info().code)} · 可在其他设备上开通</small>` : info().via === 'appstore' ? '<small>通过 App Store 购买</small>' : info().via ? '<small>兑换码开通</small>' : ''}</p>`
           : `<div class="pro-price"><b>${priceText()}</b>${listText() ? `<s>${listText()}</s>` : ''}<span>${LIVE && shop ? esc(shop.priceNote || '') + (shop.priceNote ? ' · ' : '') : PRICE_NOTE + ' · '}一次购买 · 永久使用 · 无订阅</span></div>
-             <div class="pro-actions">${info().trialUsed || FREE ? '' : `<button type="button" class="pro-trial" id="pro-trial">免费试用 ${TRIAL_DAYS} 天</button>`}<button type="button" class="pro-cta" id="pro-buy">${payPlatform() === 'ios' && TESTING ? `购买 · ${PRICE}` : `开通 Pro · ${priceText()}`}</button></div>`}
+             <div class="pro-actions">${info().trialUsed || FREE || STORE ? '' : `<button type="button" class="pro-trial" id="pro-trial">免费试用 ${TRIAL_DAYS} 天</button>`}<button type="button" class="pro-cta" id="pro-buy">${payPlatform() === 'ios' && (TESTING || STORE) ? `购买 · ${PRICE}` : `开通 Pro · ${priceText()}`}</button></div>`}
         <p class="pro-legal">${owned ? '<span></span>' : payPlatform() === 'ios' && TESTING ? '<button type="button" id="pro-restore">恢复购买</button>' : '<button type="button" id="pro-have-code">已有兑换码</button>'}<a href="terms.html" target="_blank" rel="noopener">购买须知</a><a href="privacy.html" target="_blank" rel="noopener">隐私政策</a></p>
       </footer>`;
     API.icons(s);
@@ -1715,6 +1737,8 @@
     } else if (rect) flyToJar(rect); else drawMiniJar(true);
     if (allDone) setTimeout(celebrate, 760);
   });
+  // App Store build: StoreKit changed its answer (bought on another device, Ask to Buy approved, refunded).
+  window.suisuiProChanged = () => { applyTheme(); API.render(); refreshAll(); };
   // A trial that ends while the app is open: the free look comes back.
   setInterval(() => { const was = document.documentElement.dataset.proTheme || ''; if (was !== activeTheme()) { applyTheme(); API.render(); refreshAll(); } }, 60000);
 })();
