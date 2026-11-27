@@ -1,4 +1,4 @@
-// 1.22: the build as committed (no Pro server configured) never gives Pro away.
+// 1.22: the build as committed (release config: server + public key, server not online yet) never gives Pro away.
 // Uses the real app/pro-config.js (the test environment's own Pro switch is removed before the app starts).
 const assert = require('assert');
 const { chromium, url, launchOptions } = require('./test-environment.cjs');
@@ -22,8 +22,8 @@ const { chromium, url, launchOptions } = require('./test-environment.cjs');
   // no way in: the demo code and any code are refused, checkout says not open yet
   assert.equal(await page.evaluate(() => window.SuiSuiPro.redeem(window.SuiSuiPro.demoCode)), false, 'demo code refused');
   await page.evaluate(() => window.SuiSuiPro.openPay());
-  await page.locator('#pro-pay-title').waitFor();
-  assert.equal((await page.locator('#pro-pay-title').textContent()).trim(), 'Pro 即将开放', 'checkout explains that sales are not open');
+  // the committed build is the release build: until its server is online the checkout says sales open soon
+  await page.locator('#pro-pay-title').filter({ hasText: 'Pro 即将开放' }).waitFor({ timeout: 8000 });
   assert.equal(await page.locator('#pro-pay-redeem, #pro-start-qr, #pro-paid').count(), 0, 'no payment form, no code form');
   assert.equal(await isPro(), false);
 
