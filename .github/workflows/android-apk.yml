@@ -76,9 +76,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-pro-test
-          name: 碎碎清单 Pro 测试版 · 安卓（构建 ${{ github.run_number }}）
+          name: 碎碎清单 安卓预发布版（构建 ${{ github.run_number }}）
           body: |
-            Pro 测试版：七套主题、碎片罐、完成动效全部免费可用；付款页面只是演示，不会扣钱。
+            预发布版：Pro 要每台手机自己购买或用兑换码开通（服务器上线前付款页显示「Pro 即将开放」，可先免费试用 3 天）。
             用安卓手机浏览器打开下面的 suisui.apk 下载安装。会覆盖手机上的碎碎清单，待办数据保留。
             签名：${{ env.SIGNING == 'private' && '正式密钥' || '测试密钥（仅供试用）' }}。构建 ${{ github.run_number }}，未在真机验证。
           files: suisui.apk
